@@ -12,9 +12,9 @@ export EXPERIMENT=$2
 export TIME=$(date +"%Y-%m-%d_%H-%M-%S")
 
 export DATASET=${DATASET:-ScannetSparseVoxelizationDataset}
-export MODEL=${MODEL:-Res16UNet34A}
+export MODEL=${MODEL:-Res16UNet34D}
 export OPTIMIZER=${OPTIMIZER:-SGD}
-export LR=${LR:-2e-1}
+export LR=${LR:-1e-1}
 export BATCH_SIZE=${BATCH_SIZE:-8}
 export SCHEDULER=${SCHEDULER:-SquaredLR}
 export MAX_ITER=${MAX_ITER:-200000}
