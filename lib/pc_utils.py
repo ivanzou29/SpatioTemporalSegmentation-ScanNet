@@ -25,7 +25,12 @@ def read_plyfile(filepath):
   with open(filepath, 'rb') as f:
     plydata = PlyData.read(f)
   if plydata.elements:
-    return pd.DataFrame(plydata.elements[0].data).values
+    plydata_df = pd.DataFrame(plydata.elements[0].data)
+
+    # preprocessed scannet 200 data contains column 'instance id', remove before training on semantic segmentation
+    if 'instance_id' in plydata_df.columns:
+      plydata_df = plydata_df.drop(columns=['instance_id'])
+    return plydata_df.values.astype(dtype=np.float32)
 
 
 def save_point_cloud(points_3d, filename, binary=True, with_label=False, verbose=True):

@@ -101,13 +101,11 @@ data_arg.add_argument(
 
 # Training / test parameters
 train_arg = add_argument_group('Training')
-train_arg.add_argument('--wandb_project', type=str, default='ScanNet-200 Semantic Segmentation Long Tail - Aug 30')
 train_arg.add_argument('--is_train', type=str2bool, default=True)
-train_arg.add_argument('--stat_freq', type=int, default=20, help='print frequency')
+train_arg.add_argument('--stat_freq', type=int, default=40, help='print frequency')
 train_arg.add_argument('--test_stat_freq', type=int, default=100, help='print frequency')
 train_arg.add_argument('--save_freq', type=int, default=1000, help='save frequency')
-train_arg.add_argument('--val_freq', type=int, default=500, help='validation frequency')
-train_arg.add_argument('--val_train_freq', type=int, default=2000, help='training set evaluation frequency')
+train_arg.add_argument('--val_freq', type=int, default=200, help='validation frequency')
 train_arg.add_argument(
     '--empty_cache_freq', type=int, default=1, help='Clear pytorch cache frequency')
 train_arg.add_argument('--train_phase', type=str, default='train', help='Dataset for training')
@@ -132,7 +130,7 @@ data_aug_arg.add_argument(
 data_aug_arg.add_argument(
     '--data_aug_color_jitter_std', type=float, default=0.05, help='STD of color jitter')
 data_aug_arg.add_argument(
-    '--data_aug_height_trans_std', type=float, default=1, help='STD of fheight translation')
+    '--data_aug_height_trans_std', type=float, default=1, help='STD of height translation')
 data_aug_arg.add_argument(
     '--data_aug_height_jitter_std', type=float, default=0.1, help='STD of height jitter')
 data_aug_arg.add_argument(

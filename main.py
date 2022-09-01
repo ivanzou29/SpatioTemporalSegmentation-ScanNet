@@ -32,6 +32,8 @@ from models import load_model
 
 import MinkowskiEngine as ME  # force loadding
 
+import wandb
+
 ch = logging.StreamHandler(sys.stdout)
 logging.getLogger().setLevel(logging.INFO)
 logging.basicConfig(
@@ -42,6 +44,16 @@ logging.basicConfig(
 
 def main():
   config = get_config()
+
+  wandb.init(project=config.wandb_project)
+  
+  wandb.config = config
+
+  wandb.define_metric('training/step')
+  wandb.define_metric('validation/step')
+  wandb.define_metric('training/*', step_metric='training/step')
+  wandb.define_metric('validation/*', step_metric='validation/step')
+
 
   if config.test_config:
     json_config = json.load(open(config.test_config, 'r'))
@@ -150,7 +162,7 @@ def main():
   if config.is_train:
     train(model, train_data_loader, val_data_loader, config)
   else:
-    test(model, test_data_loader, config)
+    test(0, model, test_data_loader, config, data_type='testing')
 
 
 if __name__ == '__main__':

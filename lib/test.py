@@ -17,6 +17,8 @@ from lib.utils import Timer, AverageMeter, precision_at_one, fast_hist, per_clas
 
 import MinkowskiEngine as ME
 
+import wandb
+
 
 def print_info(iteration,
                max_iteration,
@@ -28,7 +30,8 @@ def print_info(iteration,
                ious=None,
                hist=None,
                ap_class=None,
-               class_names=None):
+               class_names=None,
+               data_type='validation'):
   debug_str = "{}/{}: ".format(iteration + 1, max_iteration)
   debug_str += "Data time: {:.4f}, Iter time: {:.4f}".format(data_time, iter_time)
 
@@ -45,17 +48,31 @@ def print_info(iteration,
     debug_str += 'mAP: ' + ' '.join('{:.03f}'.format(i) for i in ap_class) + '\n'
     debug_str += 'mAcc: ' + ' '.join('{:.03f}'.format(i) for i in acc) + '\n'
 
+    if data_type != 'testing':
+      wandb_log_dict = {}
+
+      for i in range(len(ious)):
+        iou = ious[i]
+        class_name = str(i)
+
+        if class_names:
+          if i < len(class_names):
+            class_name = class_names[i]
+            print('Class name mapping', i, class_name)
+            wandb_log_dict['%s/IoU_%s' % (data_type, class_name)] = iou
+      
   logging.info(debug_str)
+  return wandb_log_dict
 
 
 def average_precision(prob_np, target_np):
   num_class = prob_np.shape[1]
   label = label_binarize(target_np, classes=list(range(num_class)))
   with np.errstate(divide='ignore', invalid='ignore'):
-    return average_precision_score(label, prob_np, None)
+    return average_precision_score(label, prob_np, average=None)
 
 
-def test(model, data_loader, config, transform_data_fn=None, has_gt=True):
+def test(curr_train_iter, model, data_loader, config, transform_data_fn=None, has_gt=True, data_type='validation'):
   device = get_torch_device(config.is_cuda)
   dataset = data_loader.dataset
   num_labels = dataset.NUM_LABELS
@@ -92,7 +109,7 @@ def test(model, data_loader, config, transform_data_fn=None, has_gt=True):
 
       if config.normalize_color:
         input[:, :3] = input[:, :3] / 255. - 0.5
-      sinput = ME.SparseTensor(input, coords).to(device)
+      sinput = ME.SparseTensor(input, coords, device=device) #.to(device)
 
       # Feed forward
       inputs = (sinput,)
@@ -121,23 +138,23 @@ def test(model, data_loader, config, transform_data_fn=None, has_gt=True):
           warnings.simplefilter("ignore", category=RuntimeWarning)
           ap_class = np.nanmean(aps, 0) * 100.
 
-      if iteration % config.test_stat_freq == 0 and iteration > 0:
-        reordered_ious = dataset.reorder_result(ious)
-        reordered_ap_class = dataset.reorder_result(ap_class)
-        class_names = dataset.get_classnames()
-        print_info(
-            iteration,
-            max_iter_unique,
-            data_time,
-            iter_time,
-            has_gt,
-            losses,
-            scores,
-            reordered_ious,
-            hist,
-            reordered_ap_class,
-            class_names=class_names)
-
+      # if iteration == max_iter - 1 and iteration > 0:
+      #   reordered_ious = dataset.reorder_result(ious)
+      #   reordered_ap_class = dataset.reorder_result(ap_class)
+      #   class_names = dataset.get_classnames()
+      #   print_info(
+      #       iteration,
+      #       max_iter_unique,
+      #       data_time,
+      #       iter_time,
+      #       has_gt,
+      #       losses,
+      #       scores,
+      #       reordered_ious,
+      #       hist,
+      #       reordered_ap_class,
+      #       class_names=class_names,
+      #       data_type=data_type)
       if iteration % config.empty_cache_freq == 0:
         # Clear cache
         torch.cuda.empty_cache()
@@ -147,23 +164,25 @@ def test(model, data_loader, config, transform_data_fn=None, has_gt=True):
   reordered_ious = dataset.reorder_result(ious)
   reordered_ap_class = dataset.reorder_result(ap_class)
   class_names = dataset.get_classnames()
-  print_info(
-      iteration,
-      max_iter_unique,
-      data_time,
-      iter_time,
-      has_gt,
-      losses,
-      scores,
-      reordered_ious,
-      hist,
-      reordered_ap_class,
-      class_names=class_names)
-
+  wandb_log_dict = print_info(
+        iteration,
+        max_iter_unique,
+        data_time,
+        iter_time,
+        has_gt,
+        losses,
+        scores,
+        reordered_ious,
+        hist,
+        reordered_ap_class,
+        class_names=class_names,
+        data_type=data_type
+      )
+  
   logging.info("Finished test. Elapsed time: {:.4f}".format(global_time))
 
   # Explicit memory cleanup
   if hasattr(data_iter, 'cleanup'):
     data_iter.cleanup()
 
-  return losses.avg, scores.avg, np.nanmean(ap_class), np.nanmean(per_class_iu(hist)) * 100
+  return losses.avg, scores.avg, np.nanmean(ap_class), np.nanmean(per_class_iu(hist)) * 100, wandb_log_dict

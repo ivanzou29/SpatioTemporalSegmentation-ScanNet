@@ -248,6 +248,7 @@ class cfl_collate_fn_factory:
             f'limit. Truncating batch size at {batch_id} out of {num_full_batch_size} with {batch_num_points - num_points}.'
         )
         break
+      
       coords_batch.append(torch.from_numpy(coords[batch_id]).int())
       feats_batch.append(torch.from_numpy(feats[batch_id]))
       labels_batch.append(torch.from_numpy(labels[batch_id]).int())

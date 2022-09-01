@@ -14,10 +14,10 @@ export TIME=$(date +"%Y-%m-%d_%H-%M-%S")
 export DATASET=${DATASET:-ScannetSparseVoxelizationDataset}
 export MODEL=${MODEL:-Res16UNet34A}
 export OPTIMIZER=${OPTIMIZER:-SGD}
-export LR=${LR:-1e-1}
-export BATCH_SIZE=${BATCH_SIZE:-12}
+export LR=${LR:-2e-1}
+export BATCH_SIZE=${BATCH_SIZE:-8}
 export SCHEDULER=${SCHEDULER:-SquaredLR}
-export MAX_ITER=${MAX_ITER:-60000}
+export MAX_ITER=${MAX_ITER:-200000}
 
 export OUTPATH=./outputs/$DATASET/$MODEL/${OPTIMIZER}-l$LR-b$BATCH_SIZE-$SCHEDULER-i$MAX_ITER-$EXPERIMENT/$TIME
 export VERSION=$(git rev-parse HEAD)

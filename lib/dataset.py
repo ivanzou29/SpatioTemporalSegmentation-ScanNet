@@ -190,8 +190,7 @@ class VoxelizationDatasetBase(DictDataset, ABC):
 
   def load_ply(self, index):
     filepath = self.data_root / self.data_paths[index]
-    return read_plyfile(filepath), None
-
+    return read_plyfile(str(filepath)+".ply"), None
   def __len__(self):
     num_data = len(self.data_paths)
     if self.explicit_rotation > 1:
@@ -253,6 +252,7 @@ class SparseVoxelizationDataset(VoxelizationDatasetBase):
     # map labels not evaluated to ignore_label
     label_map = {}
     n_used = 0
+
     for l in range(self.NUM_LABELS):
       if l in self.IGNORE_LABELS:
         label_map[l] = self.ignore_mask
@@ -298,6 +298,7 @@ class SparseVoxelizationDataset(VoxelizationDatasetBase):
     # o3d.draw_geometries([pcd])
 
     coords, feats, labels = self.convert_mat2cfl(pointcloud)
+
     outs = self.sparse_voxelizer.voxelize(
         coords,
         feats,
@@ -317,6 +318,7 @@ class SparseVoxelizationDataset(VoxelizationDatasetBase):
     if self.target_transform is not None:
       coords, feats, labels = self.target_transform(coords, feats, labels)
     if self.IGNORE_LABELS is not None:
+
       labels = np.array([self.label_map[x] for x in labels], dtype=np.int)
 
     return_args = [coords, feats, labels]
@@ -502,7 +504,10 @@ def initialize_data_loader(DatasetClass,
         num_workers=threads,
         batch_size=batch_size,
         collate_fn=collate_fn,
-        sampler=InfSampler(dataset, shuffle))
+        sampler=InfSampler(dataset, shuffle),
+        prefetch_factor=4,
+        pin_memory=True
+        )
   else:
     # Default shuffle=False
     data_loader = DataLoader(
@@ -510,7 +515,10 @@ def initialize_data_loader(DatasetClass,
         num_workers=threads,
         batch_size=batch_size,
         collate_fn=collate_fn,
-        shuffle=shuffle)
+        shuffle=shuffle,
+        prefetch_factor=4,
+        pin_memory=True
+        )
 
   return data_loader
 
