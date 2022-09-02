@@ -45,7 +45,7 @@ logging.basicConfig(
 def main():
   config = get_config()
 
-  wandb.init(project=config.wandb_project)
+  wandb.init(project=config.wandb_project, settings=wandb.Settings(start_method="fork"))
   
   wandb.config = config
 
