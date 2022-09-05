@@ -41,6 +41,8 @@ logging.basicConfig(
     datefmt='%m/%d %H:%M:%S',
     handlers=[ch])
 
+os.environ["WANDB_API_KEY"] = "6c011c4be3202303ea3bb290c06fd2b3d621013c"
+os.environ["WANDB_MODE"] = "offline"
 
 def main():
   config = get_config()
