@@ -103,6 +103,7 @@ data_arg.add_argument(
 train_arg = add_argument_group('Training')
 train_arg.add_argument('--wandb_project', type=str, default='ScanNet-200 Semantic Segmentation Long Tail - Aug 30')
 train_arg.add_argument('--is_train', type=str2bool, default=True)
+train_arg.add_argument('--reweight', type=str, default='None', help='sample reweighting mechanism')
 train_arg.add_argument('--stat_freq', type=int, default=20, help='print frequency')
 train_arg.add_argument('--test_stat_freq', type=int, default=100, help='print frequency')
 train_arg.add_argument('--save_freq', type=int, default=1000, help='save frequency')

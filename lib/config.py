@@ -108,7 +108,6 @@ train_arg.add_argument('--save_freq', type=int, default=1000, help='save frequen
 train_arg.add_argument('--val_freq', type=int, default=200, help='validation frequency')
 train_arg.add_argument(
     '--empty_cache_freq', type=int, default=1, help='Clear pytorch cache frequency')
-train_arg.add_argument('--reweight', type=str, default='None', help='sample reweighting mechanism')
 train_arg.add_argument('--train_phase', type=str, default='train', help='Dataset for training')
 train_arg.add_argument('--val_phase', type=str, default='val', help='Dataset for validation')
 train_arg.add_argument(
