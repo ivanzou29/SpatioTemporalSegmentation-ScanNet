@@ -23,7 +23,7 @@ from lib.solvers import initialize_optimizer, initialize_scheduler
 
 from MinkowskiEngine import SparseTensor
 from collections import Counter
-from lib.datasets.scannet import CLASS_LABELS, CLASS_LABELS_200
+from lib.datasets.scannet import CLASS_LABELS, CLASS_LABELS_200, INSTANCE_COUNTER, INSTANCE_COUNTER_200
 
 
 def validate(model, data_loader, curr_iter, config, transform_data_fn, class_counter, data_type='validation'):
@@ -59,10 +59,16 @@ def train(model, data_loader, val_data_loader, config, transform_data_fn=None):
 
   optimizer = initialize_optimizer(model.parameters(), config)
   scheduler = initialize_scheduler(optimizer, config)
+
   criterion = nn.CrossEntropyLoss(ignore_index=config.ignore_label)
+  
+  instance_counter = INSTANCE_COUNTER_200 if config.dataset[-3:] == '200' else INSTANCE_COUNTER
+  class_labels = CLASS_LABELS if config.dataset[-3:] != '200' else CLASS_LABELS_200
+
+  if config.reweight == 'instance':
+    criterion = nn.CrossEntropyLoss(ignore_index=config.ignore_label, weight=torch.Tensor([(1 / instance_counter[c]) for c in class_labels]))
 
   class_counter = Counter()
-  class_labels = CLASS_LABELS if config.dataset[-3:] != '200' else CLASS_LABELS_200
 
   # Train the network
   logging.info('===> Start training')
