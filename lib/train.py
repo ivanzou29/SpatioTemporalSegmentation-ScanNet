@@ -66,7 +66,8 @@ def train(model, data_loader, val_data_loader, config, transform_data_fn=None):
   class_labels = CLASS_LABELS if config.dataset[-3:] != '200' else CLASS_LABELS_200
 
   if config.reweight == 'instance':
-    criterion = nn.CrossEntropyLoss(ignore_index=config.ignore_label, weight=torch.Tensor([(50 / instance_counter[c]) for c in class_labels]))
+    weightTensor = torch.Tensor([(50 / instance_counter[c]) for c in class_labels]).to(device)
+    criterion = nn.CrossEntropyLoss(ignore_index=config.ignore_label, weight=weightTensor)
 
   class_counter = Counter()
 
