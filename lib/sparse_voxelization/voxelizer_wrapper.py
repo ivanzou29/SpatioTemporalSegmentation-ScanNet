@@ -140,7 +140,8 @@ class SparseVoxelizer:
     coords_aug, feats, labels = ME.utils.sparse_quantize(
         coords_aug, feats, labels=labels.astype(np.int32), ignore_label=self.ignore_label)
     
-    coords_aug = coords_aug.numpy()
+    if type(coords_aug) != type(np.array([1, 2, 3])):
+      coords_aug = coords_aug.numpy()
     # Normal rotation
     if feats.shape[1] > 6:
       feats[:, 3:6] = feats[:, 3:6] @ (M_r[:3, :3].T)
