@@ -7,6 +7,7 @@
 import logging
 import os.path as osp
 from turtle import forward
+from SpatioTemporalSegmentation-ScanNet.lib.datasets.scannet import INSTANCE_COUNTER_200_TRAIN
 from sklearn.model_selection import train_test_split
 
 import sys
@@ -15,6 +16,7 @@ import torch
 from torch import nn
 
 import wandb
+import lib.loss as loss
 
 from lib.test import test
 from lib.utils import checkpoint, precision_at_one, \
@@ -62,12 +64,11 @@ def train(model, data_loader, val_data_loader, config, transform_data_fn=None):
 
   criterion = nn.CrossEntropyLoss(ignore_index=config.ignore_label)
   
-  instance_counter = INSTANCE_COUNTER_200 if config.dataset[-3:] == '200' else INSTANCE_COUNTER
+  instance_counter = INSTANCE_COUNTER_200_TRAIN if config.dataset[-3:] == '200' else INSTANCE_COUNTER
   class_labels = CLASS_LABELS if config.dataset[-3:] != '200' else CLASS_LABELS_200
 
   if config.reweight == 'instance':
-    weightTensor = torch.Tensor([(50 / instance_counter[c]) for c in class_labels]).to(device)
-    criterion = nn.CrossEntropyLoss(ignore_index=config.ignore_label, weight=weightTensor)
+    criterion = loss.instance_count_reweight_loss(device=device, config=config, class_labels=class_labels, instance_counter=instance_counter)
 
   class_counter = Counter()
 
