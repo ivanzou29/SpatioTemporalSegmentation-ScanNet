@@ -16,7 +16,7 @@ import torch
 from torch import nn
 
 import wandb
-import lib.loss as loss
+from lib.loss import class_difficulty_reweight_loss, instance_count_reweight_loss, cooccurrence_graph_reweight_loss
 
 from lib.test import test
 from lib.utils import checkpoint, precision_at_one, \
@@ -25,7 +25,7 @@ from lib.solvers import initialize_optimizer, initialize_scheduler
 
 from MinkowskiEngine import SparseTensor
 from collections import Counter
-from lib.datasets.scannet import CLASS_LABELS, CLASS_LABELS_200, INSTANCE_COUNTER_20_TRAIN, INSTANCE_COUNTER_200_TRAIN
+from lib.datasets.scannet import CLASS_LABELS, CLASS_LABELS_200, INSTANCE_COUNTER_20_TRAIN, INSTANCE_COUNTER_200_TRAIN, STEP_LEARN_STARTED_DICT_200, STEP_VAL_STARTED_DICT_200, STEP_ALMOST_LEARNED_DICT_200
 
 
 def validate(model, data_loader, curr_iter, config, transform_data_fn, class_counter, data_type='validation'):
@@ -61,14 +61,20 @@ def train(model, data_loader, val_data_loader, config, transform_data_fn=None):
 
   optimizer = initialize_optimizer(model.parameters(), config)
   scheduler = initialize_scheduler(optimizer, config)
-
-  criterion = nn.CrossEntropyLoss(ignore_index=config.ignore_label)
   
   instance_counter = INSTANCE_COUNTER_200_TRAIN if config.dataset[-3:] == '200' else INSTANCE_COUNTER_20_TRAIN
   class_labels = CLASS_LABELS if config.dataset[-3:] != '200' else CLASS_LABELS_200
 
+
+  criterion = nn.CrossEntropyLoss(ignore_index=config.ignore_label)
   if config.reweight == 'instance':
-    criterion = loss.instance_count_reweight_loss(device=device, config=config, class_labels=class_labels, instance_counter=instance_counter)
+    criterion = instance_count_reweight_loss(device=device, config=config, class_labels=class_labels, instance_counter=instance_counter)
+  elif config.reweight == 'step_learn_started':
+    criterion = class_difficulty_reweight_loss(device=device, config=config, class_labels=class_labels, class_difficulty=STEP_LEARN_STARTED_DICT_200)
+  elif config.reweight == 'step_val_started':
+    criterion = class_difficulty_reweight_loss(device=device, config=config, class_labels=class_labels, class_difficulty=STEP_VAL_STARTED_DICT_200)
+  elif config.reweight == 'step_almost_learned':
+    criterion = class_difficulty_reweight_loss(device=device, config=config, class_labels=class_labels, class_difficulty=STEP_ALMOST_LEARNED_DICT_200)
 
   class_counter = Counter()
 
