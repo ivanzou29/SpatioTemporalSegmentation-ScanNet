@@ -291,29 +291,72 @@ SCANNET_COLOR_MAP_200 = {
   1191: (42., 94., 198.),
 }
 
-INSTANCE_COUNTER = {
-    'floor': 1555,
-    'wall': 8281,
-    'desk': 680,
-    'door': 1485,
-    'cabinet': 731,
-    'picture': 862,
-    'chair': 4665,
-    'table': 1175,
-    'window': 1212,
-    'toilet': 256,
-    'sink': 488,
-    'bed': 370,
-    'curtain': 347,
-    'shower curtain': 144,
-    'bathtub': 144,
-    'bookshelf': 360,
-    'refrigerator': 154,
-    'counter': 104,
-    'sofa': 1
+INSTANCE_COUNTER_20_ALL = {
+  'floor': 1555,
+  'wall': 8281,
+  'desk': 680,
+  'door': 1485,
+  'cabinet': 731,
+  'picture': 862,
+  'chair': 4665,
+  'table': 1175,
+  'window': 1212,
+  'toilet': 256,
+  'sink': 488,
+  'bed': 370,
+  'curtain': 347,
+  'shower curtain': 144,
+  'bathtub': 144,
+  'bookshelf': 360,
+  'refrigerator': 154,
+  'counter': 104,
+  'sofa': 1
 }
 
-INSTANCE_COUNTER_200 = {
+INSTANCE_COUNTER_20_TRAIN = {
+  'wall': 6514,
+  'door': 1192,
+  'table': 902,
+  'window': 928,
+  'chair': 3502,
+  'floor': 1236,
+  'bathtub': 113,
+  'sink': 390,
+  'shower curtain': 116,
+  'toilet': 199,
+  'picture': 647,
+  'desk': 551,
+  'cabinet': 591,
+  'bookshelf': 283,
+  'bed': 298,
+  'refrigerator': 119,
+  'curtain': 286,
+  'counter': 84,
+  'sofa': 1
+}
+
+INSTANCE_COUNTER_20_VAL = {
+  'chair': 1163,
+  'floor': 319,
+  'table': 273,
+  'wall': 1767,
+  'bookshelf': 77,
+  'picture': 215,
+  'curtain': 61,
+  'door': 293,
+  'cabinet': 140,
+  'refrigerator': 35,
+  'sink': 98,
+  'window': 284,
+  'counter': 20,
+  'desk': 129,
+  'bed': 72,
+  'toilet': 57,
+  'shower curtain': 28,
+  'bathtub': 31
+}
+
+INSTANCE_COUNTER_200_ALL = {
     'office chair': 596,
     'floor': 1555,
     'copier': 70,

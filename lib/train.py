@@ -7,7 +7,7 @@
 import logging
 import os.path as osp
 from turtle import forward
-from SpatioTemporalSegmentation-ScanNet.lib.datasets.scannet import INSTANCE_COUNTER_200_TRAIN
+
 from sklearn.model_selection import train_test_split
 
 import sys
@@ -25,7 +25,7 @@ from lib.solvers import initialize_optimizer, initialize_scheduler
 
 from MinkowskiEngine import SparseTensor
 from collections import Counter
-from lib.datasets.scannet import CLASS_LABELS, CLASS_LABELS_200, INSTANCE_COUNTER, INSTANCE_COUNTER_200
+from lib.datasets.scannet import CLASS_LABELS, CLASS_LABELS_200, INSTANCE_COUNTER_20_TRAIN, INSTANCE_COUNTER_200_TRAIN
 
 
 def validate(model, data_loader, curr_iter, config, transform_data_fn, class_counter, data_type='validation'):
@@ -64,7 +64,7 @@ def train(model, data_loader, val_data_loader, config, transform_data_fn=None):
 
   criterion = nn.CrossEntropyLoss(ignore_index=config.ignore_label)
   
-  instance_counter = INSTANCE_COUNTER_200_TRAIN if config.dataset[-3:] == '200' else INSTANCE_COUNTER
+  instance_counter = INSTANCE_COUNTER_200_TRAIN if config.dataset[-3:] == '200' else INSTANCE_COUNTER_20_TRAIN
   class_labels = CLASS_LABELS if config.dataset[-3:] != '200' else CLASS_LABELS_200
 
   if config.reweight == 'instance':

@@ -48,6 +48,9 @@ def main():
   config = get_config()
 
   wandb.init(project=config.wandb_project, settings=wandb.Settings(start_method="fork"))
+  if config.wandb_run_name:
+    wandb.run.name = config.wandb_run_name
+    wandb.save()
   
   wandb.config = config
 
