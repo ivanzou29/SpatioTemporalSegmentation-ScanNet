@@ -11,7 +11,7 @@ def instance_count_reweight_loss(device, config, class_labels=CLASS_LABELS_200, 
         -class weight is inversely proportional to the instance count
         -multiplier constant is set by default as 50 to make the reweighted cross-entropy loss value similar to the previous one
     '''
-    weight_tensor = torch.Tensor([(multiplier_constant / instance_counter[c]) for c in class_labels]).to(device)
+    weight_tensor = torch.Tensor([(multiplier_constant / instance_counter[c]) if c in instance_counter else 0 for c in class_labels]).to(device)
     criterion = nn.CrossEntropyLoss(ignore_index=config.ignore_label, weight=weight_tensor)
     return criterion
 
