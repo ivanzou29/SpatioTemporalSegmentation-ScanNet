@@ -158,11 +158,6 @@ def train(model, data_loader, val_data_loader, config, transform_data_fn=None):
         # The output of the network is not sorted
         # loss_timer.tic()
 
-        if config.reweight == 'focal_loss':
-          if config.dataset[-3:] == '200':
-            target = F.one_hot(target % 200)
-          else:
-            target = F.one_hot(target % 20)
         target = target.long().to(device)
         loss = criterion(soutput.F, target.long())
 
