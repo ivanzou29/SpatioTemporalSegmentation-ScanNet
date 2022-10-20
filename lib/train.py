@@ -42,7 +42,7 @@ def validate(model, data_loader, curr_iter, config, transform_data_fn, class_cou
   # for class_name in class_labels:
   #   wandb_log_dict['%s/count_%s' % (data_type, class_name)] = class_counter[class_name]
 
-  # wandb.log(wandb_log_dict)
+  wandb.log(wandb_log_dict)
 
   return v_mIoU
 
