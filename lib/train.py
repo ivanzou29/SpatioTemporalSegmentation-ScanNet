@@ -14,6 +14,7 @@ import sys
 
 import torch
 from torch import nn
+import torch.nn.functional as F
 
 import wandb
 from lib.loss import class_difficulty_reweight_loss, instance_count_reweight_loss, cooccurrence_graph_reweight_loss, focal_loss
@@ -156,8 +157,13 @@ def train(model, data_loader, val_data_loader, config, transform_data_fn=None):
 
         # The output of the network is not sorted
         # loss_timer.tic()
+
+        if config.reweight == 'focal_loss':
+          if config.dataset[-3:] == '200':
+            target = F.one_hot(target % 200)
+          else:
+            target = F.one_hot(target % 20)
         target = target.long().to(device)
-        print(soutput.F.size(), taget.size())
         loss = criterion(soutput.F, target.long())
 
         # Compute and accumulate gradient
