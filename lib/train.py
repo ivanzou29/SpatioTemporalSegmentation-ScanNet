@@ -77,7 +77,7 @@ def train(model, data_loader, val_data_loader, config, transform_data_fn=None):
   elif config.reweight == 'step_almost_learned':
     criterion = class_difficulty_reweight_loss(device=device, config=config, class_labels=class_labels, class_difficulty=STEP_ALMOST_LEARNED_DICT_200)
   elif config.reweight == 'focal_loss':
-    criterion = focal.FocalLoss(alpha=0.5)
+    criterion = FocalLoss(alpha=0.5)
   
   class_counter = Counter()
 
