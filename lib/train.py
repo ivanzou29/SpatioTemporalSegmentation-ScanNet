@@ -36,12 +36,12 @@ def validate(model, data_loader, curr_iter, config, transform_data_fn, class_cou
   wandb_log_dict['%s/precision_at_1' % data_type] = v_score
   wandb_log_dict['%s/step' % data_type] = curr_iter
   
-  class_labels = CLASS_LABELS_200 if config.dataset[-3:] == '200' else CLASS_LABELS
+  # class_labels = CLASS_LABELS_200 if config.dataset[-3:] == '200' else CLASS_LABELS
 
-  for class_name in class_labels:
-    wandb_log_dict['%s/count_%s' % (data_type, class_name)] = class_counter[class_name]
+  # for class_name in class_labels:
+  #   wandb_log_dict['%s/count_%s' % (data_type, class_name)] = class_counter[class_name]
 
-  wandb.log(wandb_log_dict)
+  # wandb.log(wandb_log_dict)
 
   return v_mIoU
 
@@ -123,13 +123,12 @@ def train(model, data_loader, val_data_loader, config, transform_data_fn=None):
 
         labels = target.numpy()
 
-        if config.dataset[-3:] == '200':
-          class_counter += Counter(list(map(lambda t: CLASS_LABELS_200[t] if t >= 0 and t < 200 else 'ignore', labels)))
-        else:
-          class_counter += Counter(list(map(lambda t: CLASS_LABELS[t] if t >= 0 and t < 20 else 'ignore', labels)))
+        # if config.dataset[-3:] == '200':
+        #   class_counter += Counter(list(map(lambda t: CLASS_LABELS_200[t] if t >= 0 and t < 200 else 'ignore', labels)))
+        # else:
+        #   class_counter += Counter(list(map(lambda t: CLASS_LABELS[t] if t >= 0 and t < 20 else 'ignore', labels)))
         
         dataloader_time += dataloader_timer.toc(False)
-
 
         # For some networks, making the network invariant to even, odd coords is important
         # coords_timer.tic()
@@ -158,7 +157,7 @@ def train(model, data_loader, val_data_loader, config, transform_data_fn=None):
         # The output of the network is not sorted
         # loss_timer.tic()
         target = target.long().to(device)
-
+        print(soutput.F.size(), taget.size())
         loss = criterion(soutput.F, target.long())
 
         # Compute and accumulate gradient
@@ -212,8 +211,8 @@ def train(model, data_loader, val_data_loader, config, transform_data_fn=None):
 
         wandb_log_dict_train = {}
 
-        for class_name in class_labels:
-          wandb_log_dict_train['training/count_%s' % class_name] = class_counter[class_name]
+        # for class_name in class_labels:
+        #   wandb_log_dict_train['training/count_%s' % class_name] = class_counter[class_name]
         
         wandb_log_dict_train['training/loss'] = losses.avg
         wandb_log_dict_train['training/precision_at_1'] = scores.avg
