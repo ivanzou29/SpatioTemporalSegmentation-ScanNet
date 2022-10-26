@@ -15,7 +15,7 @@ def instance_count_reweight_loss(device, config, class_labels=CLASS_LABELS_200, 
     criterion = nn.CrossEntropyLoss(ignore_index=config.ignore_label, weight=weight_tensor)
     return criterion
 
-def class_difficulty_reweight_loss(device, config, class_labels=CLASS_LABELS_200, class_difficulty=STEP_LEARN_STARTED_DICT_200, divisor_constant=20000):
+def class_difficulty_reweight_loss(device, config, class_labels=CLASS_LABELS_200, class_difficulty=STEP_LEARN_STARTED_DICT_200, divisor_constant=20000, threshold=0.5):
     '''
         -reweight loss function that uses the class learning difficulty defined by the time when each class begins to be learned
         -difficulty is proportional to the training steps when the training IoU of a specific class becomes > 0
@@ -23,7 +23,7 @@ def class_difficulty_reweight_loss(device, config, class_labels=CLASS_LABELS_200
         -divisor constant is set by default 20000 to make reweighted cross-entropy loss value similar to the previous one
     '''
 
-    weight_tensor = torch.Tensor([(class_difficulty[c] / divisor_constant) for c in class_labels]).to(device)
+    weight_tensor = torch.Tensor([max(threshold, (class_difficulty[c] / divisor_constant)) for c in class_labels]).to(device)
     criterion = nn.CrossEntropyLoss(ignore_index=config.ignore_label, weight=weight_tensor)
 
     return criterion
