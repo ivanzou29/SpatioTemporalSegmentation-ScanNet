@@ -57,8 +57,8 @@ class CommonClassesSampler(Sampler):
   def __init__(
     self, 
     data_source, 
-    instance_counter_by_scene_path='scannet200_instance_counter/instance_counter_train_by_scene.pickle', 
-    train_scene_list_path='scene_list_train.pickle',
+    instance_counter_by_scene_path='lib/scannet200_instance_counter/instance_counter_train_by_scene.pickle', 
+    train_scene_list_path='lib/scene_list_train.pickle',
     common_class_list=COMMON_CATS_SCANNET_200,
     augmentation_factor=2,
     shuffle=False,
