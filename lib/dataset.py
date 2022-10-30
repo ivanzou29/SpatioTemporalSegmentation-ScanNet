@@ -501,8 +501,9 @@ def initialize_data_loader(DatasetClass,
     # Use the inf random sampler
     
     sampler = InfSampler(dataset, shuffle)
-    if config.sampler == 'CommonClassesSampler':
-      sampler = CommonClassesSampler(dataset, shuffle=shuffle)
+    if phase == config.train_phase:
+      if config.sampler == 'CommonClassesSampler':
+        sampler = CommonClassesSampler(dataset, shuffle=shuffle)
     
     data_loader = DataLoader(
         dataset=dataset,

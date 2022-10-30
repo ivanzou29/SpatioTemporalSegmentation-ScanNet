@@ -5,7 +5,7 @@
 # the code.
 import torch
 import random
-import pickle
+import pickle5 as pickle
 from torch.utils.data.sampler import Sampler
 from lib.scannet200_splits import COMMON_CATS_SCANNET_200
 
@@ -61,17 +61,17 @@ class CommonClassesSampler(Sampler):
     train_scene_list_path='lib/scene_list_train.pickle',
     common_class_list=COMMON_CATS_SCANNET_200,
     augmentation_factor=2,
-    shuffle=False,
+    shuffle=False
   ):
     self.data_source = data_source
 
     self.instance_counter_by_scene = {}
     self.train_scene_list = []
     with open(instance_counter_by_scene_path, 'rb') as handler:
-      self.instance_counter_by_scene = pickle.loads(handler)
+      self.instance_counter_by_scene = pickle.load(handler)
     
-    with open(train_scene_list_path, 'wb') as handler:
-      self.train_scene_list = pickle.loads(handler)
+    with open(train_scene_list_path, 'rb') as handler:
+      self.train_scene_list = pickle.load(handler)
     
     self.shuffle = shuffle
     self.common_class_set = set(common_class_list)
@@ -95,7 +95,7 @@ class CommonClassesSampler(Sampler):
     
     self._perm = perm_list
     if self.shuffle:
-      self._perm = random.shuffle(perm_list)
+      random.shuffle(self._perm)
 
   def __iter__(self):
     return self
