@@ -7,7 +7,7 @@ import torch
 import random
 import pickle
 from torch.utils.data.sampler import Sampler
-from scannet200_splits import COMMON_CATS_SCANNET_200
+from lib.scannet200_splits import COMMON_CATS_SCANNET_200
 
 
 class InfSampler(Sampler):
