@@ -498,12 +498,11 @@ def initialize_data_loader(DatasetClass,
       phase=phase)
 
   if repeat:
-    # Use the inf random sampler
     
     sampler = InfSampler(dataset, shuffle)
-    if phase == config.train_phase:
-      if config.sampler == 'CommonClassesSampler':
-        sampler = CommonClassesSampler(dataset, shuffle=shuffle)
+    if config.sampler == 'CommonClassesSampler':
+      sampler = CommonClassesSampler(dataset, shuffle=shuffle)
+      print('Common classes sampler activated')
     
     data_loader = DataLoader(
         dataset=dataset,

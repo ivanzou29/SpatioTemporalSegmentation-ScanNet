@@ -106,6 +106,6 @@ class CommonClassesSampler(Sampler):
     return self._perm.pop()
 
   def __len__(self):
-    return len(self.data_source)
+    return len(self._perm)
 
   next = __next__  # Python 2 compatibility
