@@ -76,6 +76,7 @@ class CommonClassesSampler(Sampler):
     self.shuffle = shuffle
     self.common_class_set = set(common_class_list)
     self.augmentation_factor = augmentation_factor
+    self.l = 0
     self.reset_permutation()
   
   def reset_permutation(self):
@@ -96,6 +97,8 @@ class CommonClassesSampler(Sampler):
     self._perm = perm_list
     if self.shuffle:
       random.shuffle(self._perm)
+    
+    self.l = len(self._perm)
 
   def __iter__(self):
     return self
@@ -106,6 +109,6 @@ class CommonClassesSampler(Sampler):
     return self._perm.pop()
 
   def __len__(self):
-    return len(self._perm)
+    return self.l
 
   next = __next__  # Python 2 compatibility
