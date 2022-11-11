@@ -57,6 +57,7 @@ opt_arg.add_argument('--param_histogram_freq', type=int, default=100)
 opt_arg.add_argument('--save_param_histogram', type=str2bool, default=False)
 opt_arg.add_argument('--iter_size', type=int, default=1, help='accumulate gradient')
 opt_arg.add_argument('--bn_momentum', type=float, default=0.02)
+opt_arg.add_argument('--gradient_noise_sigma', type=float, default=0)
 
 # Scheduler
 opt_arg.add_argument('--scheduler', type=str2scheduler, default='StepLR')
