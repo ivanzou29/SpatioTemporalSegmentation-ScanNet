@@ -170,8 +170,6 @@ def train(model, data_loader, val_data_loader, config, transform_data_fn=None):
         loss.backward()
         # backward_time += backward_timer.toc(False)
 
-      model.layer.weight.grad = model.layer.weight.grad + (torch.randn_like(model.layer.weight.grad) * config.gradient_noise_sigma)
-
       # Update number of steps
       optimizer.step()
       scheduler.step()
