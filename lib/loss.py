@@ -40,6 +40,5 @@ def focal_loss(device, class_difficulty=STEP_LEARN_STARTED_DICT_200, class_label
         alpha=alpha,
         gamma=gamma,
         reduction='mean',
-        device=device,
-        force_reload=False
+        ignore_index=255
     )
