@@ -32,7 +32,8 @@ def cooccurrence_graph_reweight_loss(device, config, cooccurrence_graph):
     return
 
 
-def focal_loss(alpha=None, gamma=None):
+def focal_loss(device, class_difficulty=STEP_LEARN_STARTED_DICT_200, class_labels=CLASS_LABELS_200, gamma=2, threshold=0.5, divisor_constant=20000):
+    alpha = torch.Tensor([max(threshold, (class_difficulty[c] / divisor_constant)) for c in class_labels]).to(device)
     return torch.hub.load(
         'adeelh/pytorch-multi-class-focal-loss',
         model='FocalLoss',
