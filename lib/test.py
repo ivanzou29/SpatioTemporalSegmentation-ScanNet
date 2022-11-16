@@ -8,6 +8,8 @@ import warnings
 
 import numpy as np
 import torch
+import os
+import os.path as osp
 import torch.nn as nn
 from sklearn.metrics import average_precision_score
 from sklearn.preprocessing import label_binarize
@@ -15,6 +17,7 @@ from sklearn.preprocessing import label_binarize
 from lib.utils import Timer, AverageMeter, precision_at_one, fast_hist, per_class_iu, \
     get_prediction, get_torch_device
 
+from lib.datasets.scannet import VALID_CLASS_IDS_200
 import MinkowskiEngine as ME
 
 import wandb
@@ -47,9 +50,9 @@ def print_info(iteration,
     debug_str += 'IOU: ' + ' '.join('{:.03f}'.format(i) for i in ious) + '\n'
     debug_str += 'mAP: ' + ' '.join('{:.03f}'.format(i) for i in ap_class) + '\n'
     debug_str += 'mAcc: ' + ' '.join('{:.03f}'.format(i) for i in acc) + '\n'
-
+    
+    wandb_log_dict = {}
     if data_type != 'testing':
-      wandb_log_dict = {}
 
       for i in range(len(ious)):
         iou = ious[i]
@@ -73,6 +76,13 @@ def average_precision(prob_np, target_np):
 
 
 def test(curr_train_iter, model, data_loader, config, transform_data_fn=None, has_gt=True, data_type='validation'):
+
+  if config.trained_model_path:
+    checkpoint_fn = config.trained_model_path + '/weights.pth'
+    if osp.isfile(checkpoint_fn):
+      logging.info("=> loading checkpoint '{}'".format(checkpoint_fn))
+      state = torch.load(checkpoint_fn)
+      model.load_state_dict(state['state_dict'])
   device = get_torch_device(config.is_cuda)
   dataset = data_loader.dataset
   num_labels = dataset.NUM_LABELS
@@ -95,6 +105,8 @@ def test(curr_train_iter, model, data_loader, config, transform_data_fn=None, ha
   # Clear cache (when run in val mode, cleanup training cache)
   torch.cuda.empty_cache()
 
+  pred_res_list = []
+
   with torch.no_grad():
     for iteration in range(max_iter):
       data_timer.tic()
@@ -115,9 +127,15 @@ def test(curr_train_iter, model, data_loader, config, transform_data_fn=None, ha
       inputs = (sinput,)
       soutput = model(*inputs)
       output = soutput.F
-
+      
       pred = get_prediction(dataset, output, target).int()
       iter_time = iter_timer.toc(False)
+
+      print(pred.size())
+      print(torch.max(pred))
+      print(torch.min(pred))
+      print(torch.unique(pred))
+      print(len(torch.unique(pred)))
 
       if has_gt:
         target_np = target.numpy()
@@ -137,7 +155,10 @@ def test(curr_train_iter, model, data_loader, config, transform_data_fn=None, ha
         with warnings.catch_warnings():
           warnings.simplefilter("ignore", category=RuntimeWarning)
           ap_class = np.nanmean(aps, 0) * 100.
-
+      else:
+        pred = [VALID_CLASS_IDS_200[idx] for idx in pred.tolist()]
+        pred_res_list.append(pred)
+        print(len(pred_res_list))
       # if iteration == max_iter - 1 and iteration > 0:
       #   reordered_ious = dataset.reorder_result(ious)
       #   reordered_ap_class = dataset.reorder_result(ap_class)
@@ -158,6 +179,27 @@ def test(curr_train_iter, model, data_loader, config, transform_data_fn=None, ha
       if iteration % config.empty_cache_freq == 0:
         # Clear cache
         torch.cuda.empty_cache()
+
+  if pred_res_list:
+    # write the prediction result of test set
+    scene_names = []
+    with open('/local/home/yunzou/scannet_data/scannet_200_processed/train/scannetv2_test.txt', 'r') as f:
+      scene_names = f.readlines()
+    scene_names = [s.split()[0] for s in scene_names]
+    cwd = os.getcwd()
+    
+    test_set_prediction_root = os.path.join(cwd, 'test_set_prediction')
+    if not os.path.isdir(test_set_prediction_root):
+      os.mkdir(test_set_prediction_root)
+
+    for i in range(len(pred_res_list)):
+      pred_res = pred_res_list[i]
+      scene_name = scene_names[i]
+      result_txt = '%s.txt' % scene_name
+      with open(os.path.join(test_set_prediction_root, result_txt), 'w') as f:
+        for res in pred_res:
+          f.write('%d\n' % res)
+
 
   global_time = global_timer.toc(False)
 

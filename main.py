@@ -167,8 +167,7 @@ def main():
   if config.is_train:
     train(model, train_data_loader, val_data_loader, config)
   else:
-    test(0, model, test_data_loader, config, data_type='testing')
-
+    test(0, model, test_data_loader, config, data_type='testing', has_gt=False)
 
 if __name__ == '__main__':
   __spec__ = None

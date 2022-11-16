@@ -120,6 +120,8 @@ train_arg.add_argument(
 train_arg.add_argument(
     '--resume', default=None, type=str, help='path to latest checkpoint (default: none)')
 train_arg.add_argument(
+    '--trained_model_path', default=None, type=str, help='path to trained model pth file (default: none)')
+train_arg.add_argument(
     '--resume_optimizer',
     default=True,
     type=str2bool,
