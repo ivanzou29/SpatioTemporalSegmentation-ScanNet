@@ -147,6 +147,8 @@ def test(curr_train_iter, model, data_loader, config, transform_data_fn=None, ha
       coords, colors, pcd = load_file(scene_path)
 
       with torch.no_grad():
+
+          # Currently we are using 0.05 voxel size
           voxel_size = 0.05
           # Feed-forward pass and get the prediction
           in_field = ME.TensorField(
