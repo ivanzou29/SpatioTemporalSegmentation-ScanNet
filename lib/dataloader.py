@@ -112,3 +112,67 @@ class CommonClassesSampler(Sampler):
     return self.l
 
   next = __next__  # Python 2 compatibility
+
+
+class CooccGraphSampler(Sampler):
+
+  """
+      Samples scenes based on the cooccurrence graph
+      Scenes are weighted based on the edges of the scene-level graph
+
+      Arguments:
+          data_source (Dataset): dataset to sample from
+          train_scene_list_path (path): path to the list of training scenes
+          scene_weight_dict_by_coocc_graph_path (path): path to scene weight dictionary by cooccurrence graph
+
+  """
+  def __init__(
+    self, 
+    data_source, 
+    train_scene_list_path='lib/scene_list_train.pickle',
+    scene_weight_dict_by_coocc_graph_path='lib/scene_aug_dict_by_coocc_graph.pickle',
+    shuffle=False
+  ):
+    self.data_source = data_source
+
+    self.train_scene_list = []
+    self.scene_weight_dict_by_coocc_graph = {}
+    
+    with open(train_scene_list_path, 'rb') as handler:
+      self.train_scene_list = pickle.load(handler)
+    
+    with open(scene_weight_dict_by_coocc_graph_path, 'rb') as handler:
+      self.scene_weight_dict_by_coocc_graph = pickle.load(handler)
+    
+    self.shuffle = shuffle
+    self.l = 0
+    self.reset_permutation()
+  
+  def reset_permutation(self):
+    perm_list = []
+    for i in range(len(self.train_scene_list)):
+      scene_name = self.train_scene_list[i]
+      
+      repli_factor = self.scene_weight_dict_by_coocc_graph[scene_name]
+      for j in range(repli_factor):
+        perm_list.append(i)
+    
+    self._perm = perm_list
+    if self.shuffle:
+      random.shuffle(self._perm)
+    
+    self.l = len(self._perm)
+
+  def __iter__(self):
+    return self
+
+  def __next__(self):
+    if len(self._perm) == 0:
+      self.reset_permutation()
+    return self._perm.pop()
+
+  def __len__(self):
+    return self.l
+
+  next = __next__  # Python 2 compatibility
+
