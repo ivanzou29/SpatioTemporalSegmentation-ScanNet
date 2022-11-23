@@ -19,7 +19,7 @@ from torch.utils.data import Dataset, DataLoader
 
 from lib.pc_utils import read_plyfile
 import lib.transforms as t
-from lib.dataloader import InfSampler, CommonClassesSampler
+from lib.dataloader import InfSampler, CommonClassesSampler, CooccGraphSampler
 import MinkowskiEngine as ME
 
 
@@ -503,6 +503,9 @@ def initialize_data_loader(DatasetClass,
     if config.sampler == 'CommonClassesSampler':
       sampler = CommonClassesSampler(dataset, shuffle=shuffle)
       print('Common classes sampler activated')
+    elif config.sampler == 'CooccGraphSampler':
+      sampler = CooccGraphSampler(dataset, shuffle=shuffle)
+      print('Coocc-graph sampler activated')
     
     data_loader = DataLoader(
         dataset=dataset,
