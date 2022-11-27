@@ -107,13 +107,13 @@ def print_info(iteration,
 
             if class_name in HEAD_CATS_SCANNET_200:
               head_classes_cnt += 1
-              head_iou_sum += iou
+              head_iou_sum += iou if iou else 0
             elif class_name in COMMON_CATS_SCANNET_200:
               common_classes_cnt += 1
-              common_iou_sum += iou
+              common_iou_sum += iou if iou else 0
             elif class_name in TAIL_CATS_SCANNET_200:
               tail_classes_cnt += 1
-              tail_iou_sum += iou
+              tail_iou_sum += iou if iou else 0
       
       wandb_log_dict['%s/mIoU_head' % data_type] = head_iou_sum / head_classes_cnt
       wandb_log_dict['%s/mIoU_common' % data_type] = common_iou_sum / common_classes_cnt
