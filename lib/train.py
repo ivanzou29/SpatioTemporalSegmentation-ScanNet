@@ -37,11 +37,6 @@ def validate(model, data_loader, curr_iter, config, transform_data_fn, class_cou
   wandb_log_dict['%s/precision_at_1' % data_type] = v_score
   wandb_log_dict['%s/step' % data_type] = curr_iter
   
-  # class_labels = CLASS_LABELS_200 if config.dataset[-3:] == '200' else CLASS_LABELS
-
-  # for class_name in class_labels:
-  #   wandb_log_dict['%s/count_%s' % (data_type, class_name)] = class_counter[class_name]
-
   wandb.log(wandb_log_dict)
 
   return v_mIoU
@@ -120,43 +115,25 @@ def train(model, data_loader, val_data_loader, config, transform_data_fn=None):
           coords, input, target, pointcloud, transformation = data_iter.next()
         else:
           coords, input, target = data_iter.next()
-        
 
-        labels = target.numpy()
-
-        # if config.dataset[-3:] == '200':
-        #   class_counter += Counter(list(map(lambda t: CLASS_LABELS_200[t] if t >= 0 and t < 200 else 'ignore', labels)))
-        # else:
-        #   class_counter += Counter(list(map(lambda t: CLASS_LABELS[t] if t >= 0 and t < 20 else 'ignore', labels)))
-        
         dataloader_time += dataloader_timer.toc(False)
 
         # For some networks, making the network invariant to even, odd coords is important
-        # coords_timer.tic()
 
         coords[:, 1:] += (torch.rand(3) * 100).type_as(coords)
-        # coords_time += coords_timer.toc(False)
-
 
         # Preprocess input
-        # normalize_timer.tic()
         if config.normalize_color:
           input[:, :3] = input[:, :3] / 255. - 0.5
-        # normalize_time += normalize_timer.toc(False)
 
-        # sinput_timer.tic()
         sinput = SparseTensor(input, coords, device=device) #.to(device)
-        # sinput_time += sinput_timer.toc(False)
 
         data_time += data_timer.toc(False)
 
         # model.initialize_coords(*init_args)
-        # forward_timer.tic()
         soutput = model(sinput)
-        # forward_time += forward_timer.toc(False)
 
         # The output of the network is not sorted
-        # loss_timer.tic()
 
         target = target.long().to(device)
         loss = criterion(soutput.F, target.long())
@@ -164,11 +141,8 @@ def train(model, data_loader, val_data_loader, config, transform_data_fn=None):
         # Compute and accumulate gradient
         loss /= config.iter_size
         batch_loss += loss.item()
-        # loss_time += loss_timer.toc(False)
 
-        # backward_timer.tic()
         loss.backward()
-        # backward_time += backward_timer.toc(False)
 
       # Update number of steps
       optimizer.step()
@@ -177,12 +151,6 @@ def train(model, data_loader, val_data_loader, config, transform_data_fn=None):
       data_time_avg.update(data_time)
       iter_time_avg.update(iter_timer.toc(False))
       dataloader_time_avg.update(dataloader_time)
-      # coords_time_avg.update(coords_time)
-      # normalize_time_avg.update(normalize_time)
-      # sinput_time_avg.update(sinput_time)
-      # forward_time_avg.update(forward_time)
-      # loss_time_avg.update(loss_time)
-      # backward_time_avg.update(backward_time)
 
       pred = get_prediction(data_loader.dataset, soutput.F, target)
       score = precision_at_one(pred, target)
@@ -200,10 +168,7 @@ def train(model, data_loader, val_data_loader, config, transform_data_fn=None):
             len(data_loader) // config.iter_size, losses.avg, lrs)
         debug_str += "Score {:.3f}\tData time: {:.4f}, Iter time: {:.4f}, Dataloader time: {:.4f}".format(
             scores.avg, data_time_avg.avg, iter_time_avg.avg, dataloader_time_avg.avg)
-        # debug_str += "\tCoords time: {:.4f}, Normalize time: {:.4f}, Sparse input time: {:.4f}".format(
-        #     coords_time_avg.avg, normalize_time_avg.avg, sinput_time_avg.avg)
-        # debug_str += "\tForward time: {:.4f}, Loss time: {:.4f}, Backward time: {:.4f}".format(
-        #     forward_time_avg.avg, loss_time_avg.avg, backward_time_avg.avg)
+        
         logging.info(debug_str)
         # Reset timers
         data_time_avg.reset()
@@ -212,9 +177,6 @@ def train(model, data_loader, val_data_loader, config, transform_data_fn=None):
 
         wandb_log_dict_train = {}
 
-        # for class_name in class_labels:
-        #   wandb_log_dict_train['training/count_%s' % class_name] = class_counter[class_name]
-        
         wandb_log_dict_train['training/loss'] = losses.avg
         wandb_log_dict_train['training/precision_at_1'] = scores.avg
         wandb_log_dict_train['training/learning_rate'] = scheduler.get_lr()[0]

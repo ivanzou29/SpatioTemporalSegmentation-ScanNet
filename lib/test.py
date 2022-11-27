@@ -18,6 +18,7 @@ from sklearn.preprocessing import label_binarize
 from lib.utils import Timer, AverageMeter, precision_at_one, fast_hist, per_class_iu, \
     get_prediction, get_torch_device
 
+from lib.scannet200_splits import HEAD_CATS_SCANNET_200, COMMON_CATS_SCANNET_200, TAIL_CATS_SCANNET_200
 from lib.datasets.scannet import VALID_CLASS_IDS_200
 import MinkowskiEngine as ME
 
@@ -27,6 +28,11 @@ import wandb
 TESTING_FILES_TXT = '/local/home/yunzou/scannet_data/scannet_200_processed/train/scannetv2_test.txt'
 TESTING_SCANS_ROOT = '/local/home/yunzou/scannet_data/scannet_200_processed/test'
 PRED_ROOT = 'testing_set_prediction'
+
+# Transform scannet200_splits constants into set, for better lookup complexity
+HEAD_CATS_SCANNET_200 = set(HEAD_CATS_SCANNET_200)
+COMMON_CATS_SCANNET_200 = set(COMMON_CATS_SCANNET_200)
+TAIL_CATS_SCANNET_200 = set(TAIL_CATS_SCANNET_200)
 
 # Load point cloud file, from https://github.com/NVIDIA/MinkowskiEngine/blob/master/examples/indoor.py
 def load_file(file_name):
@@ -79,6 +85,15 @@ def print_info(iteration,
     
     wandb_log_dict = {}
     if data_type != 'testing':
+      
+      head_iou_sum = 0
+      head_classes_cnt = 0
+
+      common_iou_sum = 0
+      common_classes_cnt = 0
+
+      tail_iou_sum = 0
+      tail_classes_cnt = 0
 
       for i in range(len(ious)):
         iou = ious[i]
@@ -89,7 +104,22 @@ def print_info(iteration,
             class_name = class_names[i]
             print('Class name mapping', i, class_name)
             wandb_log_dict['%s/IoU_%s' % (data_type, class_name)] = iou
+
+            if class_name in HEAD_CATS_SCANNET_200:
+              head_classes_cnt += 1
+              head_iou_sum += iou
+            elif class_name in COMMON_CATS_SCANNET_200:
+              common_classes_cnt += 1
+              common_iou_sum += iou
+            elif class_name in TAIL_CATS_SCANNET_200:
+              tail_classes_cnt += 1
+              tail_iou_sum += iou
       
+      wandb_log_dict['%s/mIoU_head' % data_type] = head_iou_sum / head_classes_cnt
+      wandb_log_dict['%s/mIoU_common' % data_type] = common_iou_sum / common_classes_cnt
+      wandb_log_dict['%s/mIoU_tail' % data_type] = tail_iou_sum / tail_classes_cnt
+
+
   logging.info(debug_str)
   return wandb_log_dict
 
