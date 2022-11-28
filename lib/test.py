@@ -87,34 +87,35 @@ def print_info(iteration,
     if data_type != 'testing':
       
       head_iou_sum = 0
-      head_classes_cnt = 0
+      head_classes_cnt = len(HEAD_CATS_SCANNET_200)
 
       common_iou_sum = 0
-      common_classes_cnt = 0
+      common_classes_cnt = len(COMMON_CATS_SCANNET_200)
 
       tail_iou_sum = 0
-      tail_classes_cnt = 0
+      tail_classes_cnt = len(TAIL_CATS_SCANNET_200)
 
       for i in range(len(ious)):
         iou = ious[i]
         class_name = str(i)
+        
+        if iou  == 'nan' or iou == 'NaN' or iou == 'Nan':
+          iou = 0.0
+            
+        if iou:
+          iou = float(iou)
 
         if class_names:
           if i < len(class_names):
             class_name = class_names[i]
-            print('Class name mapping', i, class_name)
             wandb_log_dict['%s/IoU_%s' % (data_type, class_name)] = iou
-
             if class_name in HEAD_CATS_SCANNET_200:
-              head_classes_cnt += 1
-              head_iou_sum += iou if iou else 0
+              head_iou_sum += (iou if type(iou) == type(1.5) else 0)
             elif class_name in COMMON_CATS_SCANNET_200:
-              common_classes_cnt += 1
-              common_iou_sum += iou if iou else 0
+              common_iou_sum += (iou if type(iou) == type(1.5) else 0)
             elif class_name in TAIL_CATS_SCANNET_200:
-              tail_classes_cnt += 1
-              tail_iou_sum += iou if iou else 0
-      
+              tail_iou_sum += (iou if type(iou) == type(1.5) else 0)
+            
       wandb_log_dict['%s/mIoU_head' % data_type] = head_iou_sum / head_classes_cnt
       wandb_log_dict['%s/mIoU_common' % data_type] = common_iou_sum / common_classes_cnt
       wandb_log_dict['%s/mIoU_tail' % data_type] = tail_iou_sum / tail_classes_cnt
