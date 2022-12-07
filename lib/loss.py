@@ -42,3 +42,21 @@ def focal_loss(device, class_difficulty=STEP_LEARN_STARTED_DICT_200, class_label
         reduction='mean',
         ignore_index=255
     )
+
+
+def dynamic_reweight_by_training_iou(device, ignore_label, ious=None):
+
+    # Reimburse the classes that have not been properly learned with larger weights
+    # As 100 is the upper limit of IoU, we can set the weights proportional to the difference 100 - Class IoU
+    # Normalizing the weights so that the sum of weights is the same as the number of classes
+
+    if not ious:
+        return nn.CrossEntropyLoss(ignore_index=ignore_label)
+    else:
+        num_classes = len(ious)
+
+        weights = [(100 - ious[i]) for i in range(num_classes)]
+        weights_sum = sum(weights)
+        weight_tensor = torch.Tensor([num_classes * (weights[i] / weights_sum) for i in range(num_classes)]).to(device)
+
+        return nn.CrossEntropyLoss(ignore_index=ignore_label, weight=weight_tensor)
