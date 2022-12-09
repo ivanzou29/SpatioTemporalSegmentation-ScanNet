@@ -20,7 +20,6 @@ from torch.utils.data import Dataset, DataLoader
 from lib.pc_utils import read_plyfile
 import lib.transforms as t
 from lib.dataloader import InfSampler, CommonClassesSampler, CooccGraphSampler
-import MinkowskiEngine as ME
 
 
 class DatasetPhase(Enum):
@@ -263,6 +262,9 @@ class SparseVoxelizationDataset(VoxelizationDatasetBase):
     self.label_map = label_map
     self.NUM_LABELS -= len(self.IGNORE_LABELS)
 
+    if self.config.sampler == 'CooccGraphSampler':
+      self.cooccGraphSampler = CooccGraphSampler(shuffle=True)
+
   def get_output_id(self, iteration):
     return self.data_paths[iteration]
 
@@ -320,6 +322,9 @@ class SparseVoxelizationDataset(VoxelizationDatasetBase):
     if self.IGNORE_LABELS is not None:
 
       labels = np.array([self.label_map[x] for x in labels], dtype=np.int)
+    
+    if self.config.sampler == 'CooccGraphSampler':
+      labels = self.cooccGraphSampler.ignoreHelper(index, labels, self.config.ignore_label)
 
     return_args = [coords, feats, labels]
     if self.return_transformation:
@@ -503,9 +508,6 @@ def initialize_data_loader(DatasetClass,
     if config.sampler == 'CommonClassesSampler':
       sampler = CommonClassesSampler(dataset, shuffle=shuffle)
       print('Common classes sampler activated')
-    elif config.sampler == 'CooccGraphSampler':
-      sampler = CooccGraphSampler(dataset, shuffle=shuffle)
-      print('Coocc-graph sampler activated')
     
     data_loader = DataLoader(
         dataset=dataset,

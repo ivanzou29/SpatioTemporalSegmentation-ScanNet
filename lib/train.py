@@ -48,7 +48,7 @@ def validate(model, data_loader, curr_iter, config, transform_data_fn, class_cou
   for c in class_labels:
     ious.append(wandb_log_dict['%s/IoU_%s' % (data_type, c)])
 
-  return v_mIoU, class_labels
+  return v_mIoU, ious
 
 
 def train(model, data_loader, val_data_loader, config, transform_data_fn=None):

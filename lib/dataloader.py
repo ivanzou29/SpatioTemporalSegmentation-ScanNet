@@ -5,9 +5,11 @@
 # the code.
 import torch
 import random
+import numpy as np
 import pickle5 as pickle
 from torch.utils.data.sampler import Sampler
 from lib.scannet200_splits import COMMON_CATS_SCANNET_200
+from lib.datasets.scannet import CLASS_LABELS_200, CLASS_LABELS
 
 
 class InfSampler(Sampler):
@@ -117,13 +119,16 @@ class CommonClassesSampler(Sampler):
 class CooccGraphSampler(Sampler):
 
   """
-      Samples scenes based on the cooccurrence graph
-      Scenes are weighted based on the edges of the scene-level graph
+      Samples scenes randomly like a normal sampler
+      However, class labels are sometimes ignored based on the global and scene-level coocc graph
+      The idea is to hide some class labels so that more efforts will be focused on minor edges
 
       Arguments:
           data_source (Dataset): dataset to sample from
           train_scene_list_path (path): path to the list of training scenes
           scene_weight_dict_by_coocc_graph_path (path): path to scene weight dictionary by cooccurrence graph
+          pairs_to_ignore_path (path): path to pairs of classes of different instances that we wish to add randomness and partially ignore
+          instance_counter_by_scene_path (path): path to dictionary storing the instance counter for each scene
 
   """
   def __init__(
@@ -131,18 +136,35 @@ class CooccGraphSampler(Sampler):
     data_source, 
     train_scene_list_path='lib/scene_list_train.pickle',
     scene_weight_dict_by_coocc_graph_path='lib/scene_aug_dict_by_coocc_graph.pickle',
+    pairs_to_ignore_path='lib/scannet200_instance_counter/coocc_graph_pairs_to_ignore.pickle',
+    instance_counter_by_scene_path='lib/scannet200_instance_counter/instance_counter_train_by_scene.pickle',
     shuffle=False
   ):
     self.data_source = data_source
 
     self.train_scene_list = []
     self.scene_weight_dict_by_coocc_graph = {}
+    self.pairs_to_ignore = []
+    self.instance_counter_by_scene = {}
     
     with open(train_scene_list_path, 'rb') as handler:
       self.train_scene_list = pickle.load(handler)
     
     with open(scene_weight_dict_by_coocc_graph_path, 'rb') as handler:
       self.scene_weight_dict_by_coocc_graph = pickle.load(handler)
+    
+    with open(pairs_to_ignore_path, 'rb') as handler:
+      self.pairs_to_ignore = pickle.load(handler)
+
+    with open(instance_counter_by_scene_path, 'rb') as handler:
+      self.instance_counter_by_scene = pickle.load(handler)
+    
+    self.pairs_to_ignore = set(self.pairs_to_ignore)
+
+    self.class_labels = CLASS_LABELS_200
+    self.class_label_to_index = {}
+    for i in range(len(self.class_labels)):
+      self.class_label_to_index[self.class_label_to_index[i]] = i
     
     self.shuffle = shuffle
     self.l = 0
@@ -173,6 +195,38 @@ class CooccGraphSampler(Sampler):
 
   def __len__(self):
     return self.l
+  
+
+  def ignoreHelper(self, index, labels, ignore_label):
+    print(type(labels))
+
+    scene_instance_counter = self.instance_counter_by_scene[self.train_scene_list[index]]
+
+    class_list = list(scene_instance_counter.keys())
+    n = len(class_list)
+
+    for i in range(n - 1):
+      for j in range(i + 1, n):
+        if (class_list[i], class_list[j]) in self.pairs_to_ignore or (class_list[j], class_list[i]) in self.pairs_to_ignore:
+          rand = random.randint(1, 3)
+          if rand == 1:
+            # ignore class_list[i]
+            index_to_ignore = self.class_label_to_index[class_list[i]]
+            labels[labels == index_to_ignore] = ignore_label
+          elif rand == 2:
+            # ignore class_list[j]
+            index_to_ignore = self.class_label_to_index[class_list[j]]
+            labels[labels == index_to_ignore] = ignore_label
+          else:
+            # ignore both
+            index_to_ignore_list = [
+              self.class_label_to_index[class_list[i]],
+              self.class_label_to_index[class_list[j]]
+            ]
+            
+            for index_to_ignore in index_to_ignore_list:
+              labels[labels == index_to_ignore] = ignore_label
+
+    return labels
 
   next = __next__  # Python 2 compatibility
-
