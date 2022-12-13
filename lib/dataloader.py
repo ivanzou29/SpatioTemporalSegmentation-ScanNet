@@ -168,6 +168,8 @@ class CooccGraphSampler(Sampler):
     self.shuffle = shuffle
     self.l = 0
     self.reset_permutation()
+
+    print('Initialization successful!')
   
   def reset_permutation(self):
     perm_list = []
