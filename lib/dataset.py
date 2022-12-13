@@ -329,6 +329,9 @@ class SparseVoxelizationDataset(VoxelizationDatasetBase):
     return_args = [coords, feats, labels]
     if self.return_transformation:
       return_args.extend([pointcloud.astype(np.float32), transformation.astype(np.float32)])
+
+    
+    print(index, labels)
     return tuple(return_args)
 
   def cleanup(self):
