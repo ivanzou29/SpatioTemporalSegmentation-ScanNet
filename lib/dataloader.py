@@ -8,8 +8,7 @@ import random
 import numpy as np
 import pickle5 as pickle
 from torch.utils.data.sampler import Sampler
-from lib.scannet200_splits import COMMON_CATS_SCANNET_200
-from lib.datasets.scannet import CLASS_LABELS_200, CLASS_LABELS
+from lib.scannet200_splits import COMMON_CATS_SCANNET_200, CLASS_LABELS_200
 
 
 class InfSampler(Sampler):
