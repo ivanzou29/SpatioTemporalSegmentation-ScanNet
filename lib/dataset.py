@@ -10,7 +10,7 @@ import os.path as osp
 from pathlib import Path
 from collections import defaultdict
 import random
-import pickle
+import pickle5 as pickle
 import numpy as np
 from enum import Enum
 
@@ -21,7 +21,7 @@ from torch.utils.data import Dataset, DataLoader
 from lib.pc_utils import read_plyfile
 import lib.transforms as t
 from lib.dataloader import InfSampler, CommonClassesSampler, CooccGraphSampler
-from lib.datasets.scannet import CLASS_LABELS, CLASS_LABELS_200
+from lib.scannet200_splits import CLASS_LABELS_200
 
 
 class DatasetPhase(Enum):
@@ -270,7 +270,7 @@ class SparseVoxelizationDataset(VoxelizationDatasetBase):
       train_scene_list_path='lib/scene_list_train.pickle'
       scene_weight_dict_by_coocc_graph_path='lib/scene_aug_dict_by_coocc_graph.pickle'
       instance_counter_by_scene_path='lib/scannet200_instance_counter/instance_counter_train_by_scene.pickle'
-      pairs_to_ignore_path='lib/scannet200_instance_counter/coocc_graph_pairs_to_ignore.pickle',
+      pairs_to_ignore_path='lib/scannet200_instance_counter/coocc_graph_pairs_to_ignore.pickle'
 
       self.train_scene_list = []
       self.scene_weight_dict_by_coocc_graph = {}
@@ -290,10 +290,10 @@ class SparseVoxelizationDataset(VoxelizationDatasetBase):
       with open(pairs_to_ignore_path, 'rb') as handler:
         self.pairs_to_ignore = pickle.load(handler)
 
-      self.class_labels = CLASS_LABELS if config.dataset[-3:] != '200' else CLASS_LABELS_200
+      self.class_labels = CLASS_LABELS_200
       self.class_label_to_index = {}
       for i in range(len(self.class_labels)):
-        self.class_label_to_index[self.class_label_to_index[i]] = i
+        self.class_label_to_index[self.class_labels[i]] = i
 
 
   def get_output_id(self, iteration):

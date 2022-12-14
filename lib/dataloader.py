@@ -163,7 +163,7 @@ class CooccGraphSampler(Sampler):
     self.class_labels = CLASS_LABELS_200
     self.class_label_to_index = {}
     for i in range(len(self.class_labels)):
-      self.class_label_to_index[self.class_label_to_index[i]] = i
+      self.class_label_to_index[self.class_labels[i]] = i
     
     self.shuffle = shuffle
     self.l = 0

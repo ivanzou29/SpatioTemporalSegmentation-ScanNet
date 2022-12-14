@@ -232,8 +232,17 @@ class cfl_collate_fn_factory:
     self.limit_numpoints = limit_numpoints
 
   def __call__(self, list_data):
-    coords, feats, labels = list(zip(*list_data))
+
+    list_data_unpack = list(zip(*list_data))
+
+    coords, feats, labels = list_data_unpack[:3]
+
+    scene_instance_counts = None
+    if len(list_data_unpack) > 3:
+        scene_instance_counts = list_data_unpack[3]
+
     coords_batch, feats_batch, labels_batch = [], [], []
+    scene_instance_counts_batch = []
 
     batch_id = 0
     batch_num_points = 0
@@ -252,9 +261,16 @@ class cfl_collate_fn_factory:
       coords_batch.append(torch.from_numpy(coords[batch_id]).int())
       feats_batch.append(torch.from_numpy(feats[batch_id]))
       labels_batch.append(torch.from_numpy(labels[batch_id]).int())
+      
+      if len(list_data_unpack) > 3:
+          scene_instance_counts_batch.append(scene_instance_counts[batch_id])
 
     # Concatenate all lists
     coords_batch, feats_batch, labels_batch = ME.utils.sparse_collate(coords_batch, feats_batch, labels_batch)
+
+    if len(list_data_unpack) > 3:
+        return coords_batch, feats_batch, labels_batch, scene_instance_counts_batch
+
     return coords_batch, feats_batch, labels_batch
 
 

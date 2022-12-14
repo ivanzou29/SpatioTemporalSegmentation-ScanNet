@@ -127,14 +127,14 @@ def train(model, data_loader, val_data_loader, config, transform_data_fn=None):
         data_timer.tic()
 
         dataloader_timer.tic()
-        if config.return_transformation:
-          coords, input, target, pointcloud, transformation = data_iter.next()
-        else:
-          coords, input, target = data_iter.next()
-        
+
         if config.sampler == 'CooccGraphSampler':
           coords, input, target, scene_instance_counter = data_iter.next()
           print('Coocc graph sampler is working! ')
+        elif config.return_transformation:
+          coords, input, target, pointcloud, transformation = data_iter.next()
+        else:
+          coords, input, target = data_iter.next()
         
         dataloader_time += dataloader_timer.toc(False)
 
