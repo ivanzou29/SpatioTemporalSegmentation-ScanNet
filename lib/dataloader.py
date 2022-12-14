@@ -209,16 +209,10 @@ class CooccGraphSampler(Sampler):
               # ignore class_list[i]
               index_to_ignore = self.class_label_to_index[class_list[i]]
               labels[labels == index_to_ignore] = ignore_label
-
-              print('replace done 1')
-
             elif rand == 2:
               # ignore class_list[j]
               index_to_ignore = self.class_label_to_index[class_list[j]]
               labels[labels == index_to_ignore] = ignore_label
-
-              print('replace done 2')
-
             else:
               # ignore both
               index_to_ignore_list = [
@@ -228,9 +222,7 @@ class CooccGraphSampler(Sampler):
               
               for index_to_ignore in index_to_ignore_list:
                 labels[labels == index_to_ignore] = ignore_label
-              
-              print('replace done 3')
-              
+
       labels_batch[batch_id] = labels
 
     return labels_batch
