@@ -27,7 +27,7 @@ from lib.solvers import initialize_optimizer, initialize_scheduler
 from MinkowskiEngine import SparseTensor
 from collections import Counter
 from lib.datasets.scannet import CLASS_LABELS, CLASS_LABELS_200, INSTANCE_COUNTER_20_TRAIN, INSTANCE_COUNTER_200_TRAIN, STEP_LEARN_STARTED_DICT_200, STEP_VAL_STARTED_DICT_200, STEP_ALMOST_LEARNED_DICT_200
-
+from lib.dataloader import CooccGraphSampler
 
 def validate(model, data_loader, curr_iter, config, transform_data_fn, class_counter, data_type='validation'):
   v_loss, v_score, v_mAP, v_mIoU, wandb_log_dict = test(curr_iter, model, data_loader, config, transform_data_fn, data_type=data_type)
@@ -87,6 +87,11 @@ def train(model, data_loader, val_data_loader, config, transform_data_fn=None):
   
   class_counter = Counter()
 
+  cooccGraphSampler = None
+  if config.sampler == 'CooccGraphSampler':
+    cooccGraphSampler = data_loader.sampler
+    print('CooccGraphSampler is being used.')
+
   # Train the network
   logging.info('===> Start training')
   best_val_miou, best_val_iter, curr_iter, epoch, is_training = 0, 0, 1, 1, True
@@ -126,7 +131,11 @@ def train(model, data_loader, val_data_loader, config, transform_data_fn=None):
           coords, input, target, pointcloud, transformation = data_iter.next()
         else:
           coords, input, target = data_iter.next()
-
+        
+        if config.sampler == 'CooccGraphSampler':
+          coords, input, target, scene_instance_counter = data_iter.next()
+          print('Coocc graph sampler is working! ')
+        
         dataloader_time += dataloader_timer.toc(False)
 
         # For some networks, making the network invariant to even, odd coords is important

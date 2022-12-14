@@ -10,6 +10,7 @@ import os.path as osp
 from pathlib import Path
 from collections import defaultdict
 import random
+import pickle
 import numpy as np
 from enum import Enum
 
@@ -20,6 +21,7 @@ from torch.utils.data import Dataset, DataLoader
 from lib.pc_utils import read_plyfile
 import lib.transforms as t
 from lib.dataloader import InfSampler, CommonClassesSampler, CooccGraphSampler
+from lib.datasets.scannet import CLASS_LABELS, CLASS_LABELS_200
 
 
 class DatasetPhase(Enum):
@@ -262,8 +264,37 @@ class SparseVoxelizationDataset(VoxelizationDatasetBase):
     self.label_map = label_map
     self.NUM_LABELS -= len(self.IGNORE_LABELS)
 
-    if self.config.sampler == 'CooccGraphSampler':
-      self.cooccGraphSampler = CooccGraphSampler(shuffle=True)
+
+    # logic to get the ignore helper of the coocc graph sampler
+    if config.sampler == 'CooccGraphSampler':
+      train_scene_list_path='lib/scene_list_train.pickle'
+      scene_weight_dict_by_coocc_graph_path='lib/scene_aug_dict_by_coocc_graph.pickle'
+      instance_counter_by_scene_path='lib/scannet200_instance_counter/instance_counter_train_by_scene.pickle'
+      pairs_to_ignore_path='lib/scannet200_instance_counter/coocc_graph_pairs_to_ignore.pickle',
+
+      self.train_scene_list = []
+      self.scene_weight_dict_by_coocc_graph = {}
+      self.instance_counter_by_scene = {}
+      self.pairs_to_ignore = []
+      
+
+      with open(train_scene_list_path, 'rb') as handler:
+        self.train_scene_list = pickle.load(handler)
+      
+      with open(scene_weight_dict_by_coocc_graph_path, 'rb') as handler:
+        self.scene_weight_dict_by_coocc_graph = pickle.load(handler)
+      
+      with open(instance_counter_by_scene_path, 'rb') as handler:
+        self.instance_counter_by_scene = pickle.load(handler)
+      
+      with open(pairs_to_ignore_path, 'rb') as handler:
+        self.pairs_to_ignore = pickle.load(handler)
+
+      self.class_labels = CLASS_LABELS if config.dataset[-3:] != '200' else CLASS_LABELS_200
+      self.class_label_to_index = {}
+      for i in range(len(self.class_labels)):
+        self.class_label_to_index[self.class_label_to_index[i]] = i
+
 
   def get_output_id(self, iteration):
     return self.data_paths[iteration]
@@ -322,16 +353,16 @@ class SparseVoxelizationDataset(VoxelizationDatasetBase):
     if self.IGNORE_LABELS is not None:
 
       labels = np.array([self.label_map[x] for x in labels], dtype=np.int)
-    
-    if self.config.sampler == 'CooccGraphSampler':
-      labels = self.cooccGraphSampler.ignoreHelper(index, labels, self.config.ignore_label)
 
     return_args = [coords, feats, labels]
     if self.return_transformation:
       return_args.extend([pointcloud.astype(np.float32), transformation.astype(np.float32)])
 
     
-    print(index, labels)
+    if self.config.sampler == 'CooccGraphSampler':
+      scene_instance_counter = self.instance_counter_by_scene[self.train_scene_list[index]]
+      return_args.append(scene_instance_counter)
+    
     return tuple(return_args)
 
   def cleanup(self):
@@ -504,13 +535,15 @@ def initialize_data_loader(DatasetClass,
       augment_data=augment_data,
       elastic_distortion=elastic_distortion,
       phase=phase)
-
+  
   if repeat:
-    
     sampler = InfSampler(dataset, shuffle)
     if config.sampler == 'CommonClassesSampler':
       sampler = CommonClassesSampler(dataset, shuffle=shuffle)
-      print('Common classes sampler activated')
+      print('Common classes sampler activated.')
+    elif config.sampler == 'CooccGraphSampler':
+      sampler = CooccGraphSampler(dataset, shuffle=True)
+      print('Coocc graph sampler activated.')
     
     data_loader = DataLoader(
         dataset=dataset,

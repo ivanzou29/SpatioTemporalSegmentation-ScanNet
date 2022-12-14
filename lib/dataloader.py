@@ -172,19 +172,10 @@ class CooccGraphSampler(Sampler):
     print('Initialization successful!')
   
   def reset_permutation(self):
-    perm_list = []
-    for i in range(len(self.train_scene_list)):
-      scene_name = self.train_scene_list[i]
-      
-      repli_factor = self.scene_weight_dict_by_coocc_graph[scene_name]
-      for j in range(repli_factor):
-        perm_list.append(i)
-    
-    self._perm = perm_list
+    perm = len(self.data_source)
     if self.shuffle:
-      random.shuffle(self._perm)
-    
-    self.l = len(self._perm)
+      perm = torch.randperm(perm)
+    self._perm = perm.tolist()
 
   def __iter__(self):
     return self
@@ -195,7 +186,7 @@ class CooccGraphSampler(Sampler):
     return self._perm.pop()
 
   def __len__(self):
-    return self.l
+    return len(self.data_source)
   
 
   def ignoreHelper(self, index, labels, ignore_label):
