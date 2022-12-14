@@ -189,36 +189,50 @@ class CooccGraphSampler(Sampler):
     return len(self.data_source)
   
 
-  def ignoreHelper(self, index, labels, ignore_label):
-    print(type(labels))
+  def ignoreHelper(self, scene_instance_counter_batch, labels_batch, ignore_label):
 
-    scene_instance_counter = self.instance_counter_by_scene[self.train_scene_list[index]]
+    bs = len(scene_instance_counter_batch)
 
-    class_list = list(scene_instance_counter.keys())
-    n = len(class_list)
+    for batch_id in range(bs):
+      scene_instance_counter = scene_instance_counter_batch[batch_id]
+      labels = labels_batch[batch_id]
 
-    for i in range(n - 1):
-      for j in range(i + 1, n):
-        if (class_list[i], class_list[j]) in self.pairs_to_ignore or (class_list[j], class_list[i]) in self.pairs_to_ignore:
-          rand = random.randint(1, 3)
-          if rand == 1:
-            # ignore class_list[i]
-            index_to_ignore = self.class_label_to_index[class_list[i]]
-            labels[labels == index_to_ignore] = ignore_label
-          elif rand == 2:
-            # ignore class_list[j]
-            index_to_ignore = self.class_label_to_index[class_list[j]]
-            labels[labels == index_to_ignore] = ignore_label
-          else:
-            # ignore both
-            index_to_ignore_list = [
-              self.class_label_to_index[class_list[i]],
-              self.class_label_to_index[class_list[j]]
-            ]
+      class_list = list(scene_instance_counter.keys())
+      n = len(class_list)
+
+      for i in range(n - 1):
+        for j in range(i + 1, n):
+          if (class_list[i], class_list[j]) in self.pairs_to_ignore or (class_list[j], class_list[i]) in self.pairs_to_ignore:
+            rand = random.randint(1, 3)
             
-            for index_to_ignore in index_to_ignore_list:
+            if rand == 1:
+              # ignore class_list[i]
+              index_to_ignore = self.class_label_to_index[class_list[i]]
               labels[labels == index_to_ignore] = ignore_label
 
-    return labels
+              print('replace done 1')
+
+            elif rand == 2:
+              # ignore class_list[j]
+              index_to_ignore = self.class_label_to_index[class_list[j]]
+              labels[labels == index_to_ignore] = ignore_label
+
+              print('replace done 2')
+
+            else:
+              # ignore both
+              index_to_ignore_list = [
+                self.class_label_to_index[class_list[i]],
+                self.class_label_to_index[class_list[j]]
+              ]
+              
+              for index_to_ignore in index_to_ignore_list:
+                labels[labels == index_to_ignore] = ignore_label
+              
+              print('replace done 3')
+              
+      labels_batch[batch_id] = labels
+
+    return labels_batch
 
   next = __next__  # Python 2 compatibility

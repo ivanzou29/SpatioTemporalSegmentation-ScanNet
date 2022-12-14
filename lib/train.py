@@ -130,6 +130,8 @@ def train(model, data_loader, val_data_loader, config, transform_data_fn=None):
 
         if config.sampler == 'CooccGraphSampler':
           coords, input, target, scene_instance_counter = data_iter.next()
+
+          target = cooccGraphSampler.ignoreHelper(scene_instance_counter, target, config.ignore_label)
           print('Coocc graph sampler is working! ')
         elif config.return_transformation:
           coords, input, target, pointcloud, transformation = data_iter.next()
