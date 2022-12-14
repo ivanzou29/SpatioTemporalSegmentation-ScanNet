@@ -98,6 +98,10 @@ def main():
         repeat=True,
         batch_size=config.batch_size,
         limit_numpoints=config.train_limit_numpoints)
+
+    val_config = config
+    val_config.sampler = None
+
     val_data_loader = initialize_data_loader(
         DatasetClass,
         config,
@@ -109,6 +113,19 @@ def main():
         repeat=False,
         batch_size=config.val_batch_size,
         limit_numpoints=False)
+    
+    val_train_data_loader = initialize_data_loader(
+        DatasetClass,
+        config,
+        threads=config.val_threads,
+        phase=config.train_phase,
+        augment_data=False,
+        elastic_distortion=config.test_elastic_distortion,
+        shuffle=True,
+        repeat=False,
+        batch_size=config.val_batch_size,
+        limit_numpoints=False)
+
     if train_data_loader.dataset.NUM_IN_CHANNEL is not None:
       num_in_channel = train_data_loader.dataset.NUM_IN_CHANNEL
     else:
@@ -165,7 +182,7 @@ def main():
         model.load_state_dict(state['state_dict'])
 
   if config.is_train:
-    train(model, train_data_loader, val_data_loader, config)
+    train(model, train_data_loader, val_data_loader, val_train_data_loader, config)
   else:
     test(0, model, test_data_loader, config, data_type='testing', has_gt=False)
 

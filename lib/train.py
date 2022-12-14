@@ -51,7 +51,7 @@ def validate(model, data_loader, curr_iter, config, transform_data_fn, class_cou
   return v_mIoU, ious
 
 
-def train(model, data_loader, val_data_loader, config, transform_data_fn=None):
+def train(model, data_loader, val_data_loader, val_train_data_loader, config, transform_data_fn=None):
   device = get_torch_device(config.is_cuda)
   # Set up the train flag for batch normalization
   model.train()
@@ -94,6 +94,11 @@ def train(model, data_loader, val_data_loader, config, transform_data_fn=None):
   # Train the network
   logging.info('===> Start training')
   best_val_miou, best_val_iter, curr_iter, epoch, is_training = 0, 0, 1, 1, True
+
+
+  logging.info('===> Testing before training')
+  val_miou, val_ious = validate(model, val_data_loader, curr_iter, config, transform_data_fn, class_counter, 'validation')
+  train_miou, train_ious = validate(model, val_train_data_loader, curr_iter, config, transform_data_fn, class_counter, 'training')
 
   if config.resume:
     checkpoint_fn = config.resume + '/weights.pth'
@@ -222,7 +227,7 @@ def train(model, data_loader, val_data_loader, config, transform_data_fn=None):
         logging.info("Current best mIoU: {:.3f} at iter {}".format(best_val_miou, best_val_iter))
 
       if curr_iter % config.val_train_freq == 0:
-        train_miou, train_ious = validate(model, data_loader, curr_iter, config, transform_data_fn, class_counter, 'training')
+        train_miou, train_ious = validate(model, val_train_data_loader, curr_iter, config, transform_data_fn, class_counter, 'training')
         logging.info("Current train miou: {:.3f} at iter {}".format(train_miou, curr_iter))
 
 

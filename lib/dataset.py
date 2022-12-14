@@ -499,7 +499,8 @@ def initialize_data_loader(DatasetClass,
                            limit_numpoints,
                            elastic_distortion=False,
                            input_transform=None,
-                           target_transform=None):
+                           target_transform=None,
+                           domain='all'):
   if isinstance(phase, str):
     phase = str2datasetphase_type(phase)
 

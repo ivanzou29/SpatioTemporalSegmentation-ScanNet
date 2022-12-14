@@ -309,3 +309,4 @@ def test(curr_train_iter, model, data_loader, config, transform_data_fn=None, ha
       data_iter.cleanup()
 
     return losses.avg, scores.avg, np.nanmean(ap_class), np.nanmean(per_class_iu(hist)) * 100, wandb_log_dict
+    
