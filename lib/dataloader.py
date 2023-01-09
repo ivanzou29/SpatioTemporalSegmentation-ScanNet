@@ -214,11 +214,8 @@ class CooccGraphSampler(Sampler):
               index_to_ignore = self.class_label_to_index[class_list[j]]
               labels[labels == index_to_ignore] = ignore_label
             else:
-              # ignore both
-              index_to_ignore_list = [
-                self.class_label_to_index[class_list[i]],
-                self.class_label_to_index[class_list[j]]
-              ]
+              # ignore none of the two
+              index_to_ignore_list = []
               
               for index_to_ignore in index_to_ignore_list:
                 labels[labels == index_to_ignore] = ignore_label
