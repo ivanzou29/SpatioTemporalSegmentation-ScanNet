@@ -149,7 +149,6 @@ def train(model, data_loader, val_data_loader, val_train_data_loader, config, tr
         
         elif config.sampler == 'SceneTypeSampler':
           coords, input, target, scene_type = data_iter.next()
-
         elif config.return_transformation:
           coords, input, target, pointcloud, transformation = data_iter.next()
         else:
