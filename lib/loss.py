@@ -55,8 +55,11 @@ def dynamic_reweight_by_training_iou(device, ignore_label, ious=None):
     else:
         num_classes = len(ious)
 
-        weights = [(100 - ious[i]) for i in range(num_classes)]
+        weights = [(100 - (ious[i] if ious[i] else 0)) for i in range(num_classes)]
         weights_sum = sum(weights)
         weight_tensor = torch.Tensor([num_classes * (weights[i] / weights_sum) for i in range(num_classes)]).to(device)
 
         return nn.CrossEntropyLoss(ignore_index=ignore_label, weight=weight_tensor)
+
+def domain_calibrated_loss(device):
+    return

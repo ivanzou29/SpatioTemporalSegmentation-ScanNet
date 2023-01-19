@@ -88,6 +88,7 @@ def train(model, data_loader, val_data_loader, val_train_data_loader, config, tr
   class_counter = Counter()
 
   cooccGraphSampler = None
+
   if config.sampler == 'CooccGraphSampler':
     cooccGraphSampler = data_loader.sampler
 
@@ -136,6 +137,10 @@ def train(model, data_loader, val_data_loader, val_train_data_loader, config, tr
           coords, input, target, scene_instance_counter = data_iter.next()
 
           target = cooccGraphSampler.ignoreHelper(scene_instance_counter, target, config.ignore_label)
+        
+        elif config.sampler == 'SceneTypeSampler':
+          coords, input, target, scene_type = data_iter.next()
+
         elif config.return_transformation:
           coords, input, target, pointcloud, transformation = data_iter.next()
         else:

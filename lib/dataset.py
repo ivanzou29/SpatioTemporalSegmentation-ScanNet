@@ -267,10 +267,11 @@ class SparseVoxelizationDataset(VoxelizationDatasetBase):
 
     # logic to get the ignore helper of the coocc graph sampler
     if config.sampler == 'CooccGraphSampler':
-      train_scene_list_path='lib/scene_list_train.pickle'
-      scene_weight_dict_by_coocc_graph_path='lib/scene_aug_dict_by_coocc_graph.pickle'
-      instance_counter_by_scene_path='lib/scannet200_instance_counter/instance_counter_train_by_scene.pickle'
-      pairs_to_ignore_path='lib/scannet200_instance_counter/coocc_graph_pairs_to_ignore.pickle'
+      train_scene_list_path = 'lib/scene_list_train.pickle'
+      scene_weight_dict_by_coocc_graph_path = 'lib/scene_aug_dict_by_coocc_graph.pickle'
+      instance_counter_by_scene_path = 'lib/scannet200_instance_counter/instance_counter_train_by_scene.pickle'
+      pairs_to_ignore_path = 'lib/scannet200_instance_counter/coocc_graph_pairs_to_ignore.pickle'
+
 
       self.train_scene_list = []
       self.scene_weight_dict_by_coocc_graph = {}
@@ -289,6 +290,24 @@ class SparseVoxelizationDataset(VoxelizationDatasetBase):
       
       with open(pairs_to_ignore_path, 'rb') as handler:
         self.pairs_to_ignore = pickle.load(handler)
+
+      self.class_labels = CLASS_LABELS_200
+      self.class_label_to_index = {}
+      for i in range(len(self.class_labels)):
+        self.class_label_to_index[self.class_labels[i]] = i
+    
+    elif config.sampler == 'SceneTypeSampler':
+      train_scene_list_path = 'lib/scene_list_train.pickle'
+      domain_by_scene_name_path = 'domain_by_scene_name.pickle'
+
+      self.train_scene_list = []
+      self.domain_by_scene_name = {}
+
+      with open(train_scene_list_path, 'rb') as handler:
+        self.train_scene_list = pickle.load(handler)
+      
+      with open(domain_by_scene_name_path, 'rb') as handler:
+        self.domain_by_scene_name = pickle.load(handler)
 
       self.class_labels = CLASS_LABELS_200
       self.class_label_to_index = {}
@@ -362,7 +381,11 @@ class SparseVoxelizationDataset(VoxelizationDatasetBase):
     if self.config.sampler == 'CooccGraphSampler':
       scene_instance_counter = self.instance_counter_by_scene[self.train_scene_list[index]]
       return_args.append(scene_instance_counter)
+    elif self.config.sampler == 'SceneTypeSampler':
+      scene_type = self.domain_by_scene_name[self.train_scene_list[index]]
+      return_args.append(scene_type)
     
+
     return tuple(return_args)
 
   def cleanup(self):
