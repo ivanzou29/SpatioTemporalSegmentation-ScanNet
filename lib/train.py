@@ -87,6 +87,16 @@ def train(model, data_loader, val_data_loader, val_train_data_loader, config, tr
   
   class_counter = Counter()
 
+  # To be removed when domain class counter is built
+  domains = [
+    'Misc.', 'Bathroom', 'Office', 'Conference Room', 'Hallway', 'Apartment', 'Living room / Lounge', 'Classroom',
+    'Stairs', 'Bedroom / Hotel', 'Bookstore / Library', 'Kitchen', 'Lobby', 'Copy/Mail Room', 'ComputerCluster',
+    'Dining Room', 'Game room', 'Laundry Room', 'Gym', 'Closet', 'Storage/Basement/Garage'
+  ]
+  domain_class_counter = {}
+  for domain in domains:
+    domain_class_counter = Counter()
+
   cooccGraphSampler = None
 
   if config.sampler == 'CooccGraphSampler':
@@ -95,7 +105,6 @@ def train(model, data_loader, val_data_loader, val_train_data_loader, config, tr
   # Train the network
   logging.info('===> Start training')
   best_val_miou, best_val_iter, curr_iter, epoch, is_training = 0, 0, 1, 1, True
-
 
   logging.info('===> Testing before training')
   val_miou, val_ious = validate(model, val_data_loader, curr_iter, config, transform_data_fn, class_counter, 'validation')
@@ -147,6 +156,11 @@ def train(model, data_loader, val_data_loader, val_train_data_loader, config, tr
           coords, input, target = data_iter.next()
         
         dataloader_time += dataloader_timer.toc(False)
+
+        # To be removed after domain class counter is built
+        print(coords.size())
+        print(target.size())
+        print(scene_type)
 
         # For some networks, making the network invariant to even, odd coords is important
 
