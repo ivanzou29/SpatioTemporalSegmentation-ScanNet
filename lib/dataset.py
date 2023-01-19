@@ -298,7 +298,7 @@ class SparseVoxelizationDataset(VoxelizationDatasetBase):
     
     elif config.sampler == 'SceneTypeSampler':
       train_scene_list_path = 'lib/scene_list_train.pickle'
-      domain_by_scene_name_path = 'domain_by_scene_name.pickle'
+      domain_by_scene_name_path = 'lib/domain_by_scene_name.pickle'
 
       self.train_scene_list = []
       self.domain_by_scene_name = {}
