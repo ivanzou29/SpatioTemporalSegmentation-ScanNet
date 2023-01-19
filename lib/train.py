@@ -81,7 +81,7 @@ def train(model, data_loader, val_data_loader, val_train_data_loader, config, tr
   elif config.reweight == 'step_almost_learned':
     criterion = class_difficulty_reweight_loss(device=device, config=config, class_labels=class_labels, class_difficulty=STEP_ALMOST_LEARNED_DICT_200)
   elif config.reweight == 'focal_loss':
-    criterion = focal_loss(device, class_difficulty=STEP_LEARN_STARTED_DICT_200, class_labels=class_labels)
+    criterion = focal_loss(device, class_difficulty=STEP_LEARN_STARTED_DICT_200, class_labels=class_labels, gamma=config.focal_loss_gamma)
   elif config.reweight =='dynamic_iou_reweight':
     criterion = dynamic_reweight_by_training_iou(device, config.ignore_label, None)
   

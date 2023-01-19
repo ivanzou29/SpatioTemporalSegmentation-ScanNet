@@ -128,6 +128,7 @@ train_arg.add_argument(
     help='Use checkpoint optimizer states when resume training')
 train_arg.add_argument('--eval_upsample', type=str2bool, default=False)
 train_arg.add_argument('--sampler', type=str, default='InfSampler')
+train_arg.add_argument('--focal_loss_gamma', type=float, default=1.0)
 
 # Data augmentation
 data_aug_arg = add_argument_group('DataAugmentation')
