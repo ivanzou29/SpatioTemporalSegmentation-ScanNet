@@ -86,8 +86,11 @@ class DomainCalibratedLoss(nn.Module):
 
         for i in range(len(inputs)):
             tar = targets[i]
+            print(tar)
+            
             class_label = self.class_labels[tar]
             pred = inputs[i]
+            print(pred)
 
             dcl += (-torch.log(
                 self.dcc[domains[i]][class_label] * torch.exp(pred[tar]) / 

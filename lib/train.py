@@ -160,11 +160,6 @@ def train(model, data_loader, val_data_loader, val_train_data_loader, config, tr
         
         dataloader_time += dataloader_timer.toc(False)
 
-        # To be removed after domain class counter is built
-        print(coords.size())
-        print(target.size())
-        print(scene_type)
-
         # For some networks, making the network invariant to even, odd coords is important
 
         coords[:, 1:] += (torch.rand(3) * 100).type_as(coords)
