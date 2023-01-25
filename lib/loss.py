@@ -1,4 +1,5 @@
 import torch
+import pickle5 as pickle
 from torch import nn
 
 
@@ -45,7 +46,6 @@ def focal_loss(device, class_difficulty=STEP_LEARN_STARTED_DICT_200, class_label
 
 
 def dynamic_reweight_by_training_iou(device, ignore_label, ious=None):
-
     # Reimburse the classes that have not been properly learned with larger weights
     # As 100 is the upper limit of IoU, we can set the weights proportional to the difference 100 - Class IoU
     # Normalizing the weights so that the sum of weights is the same as the number of classes
@@ -61,5 +61,35 @@ def dynamic_reweight_by_training_iou(device, ignore_label, ious=None):
 
         return nn.CrossEntropyLoss(ignore_index=ignore_label, weight=weight_tensor)
 
-def domain_calibrated_loss(device):
-    return
+
+class DomainCalibratedLoss(nn.Module):
+    def __init__(self, device, class_labels=CLASS_LABELS_200, dcc_pickle_path='lib/domain_class_counter.pickle'):
+        self.device = device
+        self.class_labels = class_labels
+        self.dcc_pickle_path = dcc_pickle_path
+
+        self.dcc = None
+        with open(dcc_pickle_path, 'rb') as handler:
+            self.dcc = pickle.load(handler)
+    
+        if not self.dcc:
+            raise ModuleNotFoundError
+        self.all_domains = list(self.dcc.keys())
+    
+    def forward(self, inputs, targets, domains):
+        inputs = inputs.view(-1)
+        targets = targets.view(-1)
+        domains = domains.view(-1)
+        dcl = 0
+
+        for i in range(len(inputs)):
+            tar = targets[i]
+            class_label = self.class_labels[tar]
+            pred = inputs[i]
+
+            dcl += (-torch.log(
+                self.dcc[domains[i]][class_label] * torch.exp(pred[tar]) / 
+                torch.sum(torch.Tensor([self.dcc[domains[i]][self.class_labels[j]] * torch.exp(pred[j]) for j in range(len(self.class_labels))]))
+            )).to(self.device)
+        dcl /= len(inputs)
+        return dcl

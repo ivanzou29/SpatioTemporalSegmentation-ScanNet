@@ -14,6 +14,7 @@ import os
 import sys
 import json
 import logging
+import copy
 from easydict import EasyDict as edict
 
 # Torch packages
@@ -99,19 +100,20 @@ def main():
         batch_size=config.batch_size,
         limit_numpoints=config.train_limit_numpoints)
 
-    val_config = config
+    # Deep copy is used so that plain samplers are used for the validation phase
+    val_config = copy.deepcopy(config)
     val_config.sampler = None
 
     val_data_loader = initialize_data_loader(
         DatasetClass,
-        config,
-        threads=config.val_threads,
-        phase=config.val_phase,
+        val_config,
+        threads=val_config.val_threads,
+        phase=val_config.val_phase,
         augment_data=False,
-        elastic_distortion=config.test_elastic_distortion,
+        elastic_distortion=val_config.test_elastic_distortion,
         shuffle=True,
         repeat=False,
-        batch_size=config.val_batch_size,
+        batch_size=val_config.val_batch_size,
         limit_numpoints=False)
     
     val_train_data_loader = initialize_data_loader(

@@ -305,7 +305,7 @@ class SparseVoxelizationDataset(VoxelizationDatasetBase):
 
       with open(train_scene_list_path, 'rb') as handler:
         self.train_scene_list = pickle.load(handler)
-      
+
       with open(domain_by_scene_name_path, 'rb') as handler:
         self.domain_by_scene_name = pickle.load(handler)
 
@@ -313,7 +313,6 @@ class SparseVoxelizationDataset(VoxelizationDatasetBase):
       self.class_label_to_index = {}
       for i in range(len(self.class_labels)):
         self.class_label_to_index[self.class_labels[i]] = i
-
 
   def get_output_id(self, iteration):
     return self.data_paths[iteration]
@@ -382,10 +381,8 @@ class SparseVoxelizationDataset(VoxelizationDatasetBase):
       scene_instance_counter = self.instance_counter_by_scene[self.train_scene_list[index]]
       return_args.append(scene_instance_counter)
     elif self.config.sampler == 'SceneTypeSampler':
-      scene_type = self.domain_by_scene_name[self.train_scene_list[index]]
+      scene_type = [self.domain_by_scene_name[self.train_scene_list[index]]] * len(labels)
       return_args.append(scene_type)
-    
-
     return tuple(return_args)
 
   def cleanup(self):

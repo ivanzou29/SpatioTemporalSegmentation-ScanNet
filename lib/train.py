@@ -17,7 +17,7 @@ from torch import nn
 import torch.nn.functional as F
 
 import wandb
-from lib.loss import class_difficulty_reweight_loss, instance_count_reweight_loss, focal_loss, dynamic_reweight_by_training_iou
+from lib.loss import class_difficulty_reweight_loss, instance_count_reweight_loss, focal_loss, dynamic_reweight_by_training_iou, DomainCalibratedLoss
 
 from lib.test import test
 from lib.utils import checkpoint, precision_at_one, \
@@ -82,8 +82,10 @@ def train(model, data_loader, val_data_loader, val_train_data_loader, config, tr
     criterion = class_difficulty_reweight_loss(device=device, config=config, class_labels=class_labels, class_difficulty=STEP_ALMOST_LEARNED_DICT_200)
   elif config.reweight == 'focal_loss':
     criterion = focal_loss(device, class_difficulty=STEP_LEARN_STARTED_DICT_200, class_labels=class_labels, gamma=config.focal_loss_gamma)
-  elif config.reweight =='dynamic_iou_reweight':
+  elif config.reweight == 'dynamic_iou_reweight':
     criterion = dynamic_reweight_by_training_iou(device, config.ignore_label, None)
+  elif config.reweight == 'domain_calibrated_loss':
+    criterion = DomainCalibratedLoss(device, class_labels=class_labels)
   
   class_counter = Counter()
 
@@ -142,6 +144,8 @@ def train(model, data_loader, val_data_loader, val_train_data_loader, config, tr
 
         dataloader_timer.tic()
 
+        scene_type = None
+
         if config.sampler == 'CooccGraphSampler':
           coords, input, target, scene_instance_counter = data_iter.next()
 
@@ -177,15 +181,20 @@ def train(model, data_loader, val_data_loader, val_train_data_loader, config, tr
         soutput = model(sinput)
 
         # The output of the network is not sorted
-
         target = target.long().to(device)
-        loss = criterion(soutput.F, target.long())
 
-        # Compute and accumulate gradient
-        loss /= config.iter_size
-        batch_loss += loss.item()
-
-        loss.backward()
+        if config.sampler == 'SceneTypeSampler' and config.reweight == 'domain_calibrated_loss':
+          loss = criterion(soutput.F, target.long(), scene_type)
+          loss /= config.iter_size
+          batch_loss += loss.item()
+          loss.backward()
+        
+        else:
+          loss = criterion(soutput.F, target.long())
+          # Compute and accumulate gradient
+          loss /= config.iter_size
+          batch_loss += loss.item()
+          loss.backward()
 
       # Update number of steps
       optimizer.step()
