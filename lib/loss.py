@@ -64,6 +64,9 @@ def dynamic_reweight_by_training_iou(device, ignore_label, ious=None):
 
 class DomainCalibratedLoss(nn.Module):
     def __init__(self, device, class_labels=CLASS_LABELS_200, dcc_pickle_path='lib/domain_class_counter.pickle'):
+
+        super(DomainCalibratedLoss, self).__init__()
+        
         self.device = device
         self.class_labels = class_labels
         self.dcc_pickle_path = dcc_pickle_path
@@ -81,6 +84,7 @@ class DomainCalibratedLoss(nn.Module):
         targets = targets.view(-1)
         domains = domains.view(-1)
         dcl = 0
+
 
         for i in range(len(inputs)):
             tar = targets[i]
