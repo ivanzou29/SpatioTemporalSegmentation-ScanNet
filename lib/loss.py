@@ -66,7 +66,7 @@ class DomainCalibratedLoss(nn.Module):
     def __init__(self, device, class_labels=CLASS_LABELS_200, dcc_pickle_path='lib/domain_class_counter.pickle'):
 
         super(DomainCalibratedLoss, self).__init__()
-        
+
         self.device = device
         self.class_labels = class_labels
         self.dcc_pickle_path = dcc_pickle_path
@@ -82,9 +82,7 @@ class DomainCalibratedLoss(nn.Module):
     def forward(self, inputs, targets, domains):
         inputs = inputs.view(-1)
         targets = targets.view(-1)
-        domains = domains.view(-1)
         dcl = 0
-
 
         for i in range(len(inputs)):
             tar = targets[i]
