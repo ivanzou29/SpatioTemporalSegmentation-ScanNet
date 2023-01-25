@@ -118,14 +118,14 @@ def main():
     
     val_train_data_loader = initialize_data_loader(
         DatasetClass,
-        config,
-        threads=config.val_threads,
-        phase=config.train_phase,
+        val_config,
+        threads=val_config.val_threads,
+        phase=val_config.train_phase,
         augment_data=False,
-        elastic_distortion=config.test_elastic_distortion,
+        elastic_distortion=val_config.test_elastic_distortion,
         shuffle=True,
         repeat=False,
-        batch_size=config.val_batch_size,
+        batch_size=val_config.val_batch_size,
         limit_numpoints=False)
 
     if train_data_loader.dataset.NUM_IN_CHANNEL is not None:
