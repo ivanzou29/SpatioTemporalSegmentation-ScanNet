@@ -33,7 +33,7 @@ def cooccurrence_graph_reweight_loss(device, config, cooccurrence_graph):
     return
 
 
-def focal_loss(device, class_difficulty=STEP_LEARN_STARTED_DICT_200, class_labels=CLASS_LABELS_200, gamma=2, threshold=0.5, divisor_constant=20000):
+def focal_loss(device, class_difficulty=STEP_LEARN_STARTED_DICT_200, class_labels=CLASS_LABELS_200, gamma=0.5, threshold=0.5, divisor_constant=20000):
     alpha = torch.Tensor([max(threshold, (class_difficulty[c] / divisor_constant)) for c in class_labels]).to(device)
     return torch.hub.load(
         'adeelh/pytorch-multi-class-focal-loss',
@@ -78,23 +78,22 @@ class DomainCalibratedLoss(nn.Module):
         if not self.dcc:
             raise ModuleNotFoundError
         self.all_domains = list(self.dcc.keys())
-    
+
+
     def forward(self, inputs, targets, domains):
-        inputs = inputs.view(-1)
         targets = targets.view(-1)
         dcl = 0
 
         for i in range(len(inputs)):
-            tar = targets[i]
-            print(tar)
+            tar = targets[i].detach().item()
+            if tar == 255:
+                continue
             
-            class_label = self.class_labels[tar]
             pred = inputs[i]
-            print(pred)
 
             dcl += (-torch.log(
-                self.dcc[domains[i]][class_label] * torch.exp(pred[tar]) / 
-                torch.sum(torch.Tensor([self.dcc[domains[i]][self.class_labels[j]] * torch.exp(pred[j]) for j in range(len(self.class_labels))]))
+                self.dcc[domains[i]][tar] * torch.exp(pred[tar]) / 
+                torch.sum(torch.Tensor([(self.dcc[domains[i]][j] * torch.exp(pred[j]) if j in self.dcc[domains[i]] else 0) for j in range(len(self.class_labels))]))
             )).to(self.device)
         dcl /= len(inputs)
         return dcl

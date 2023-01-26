@@ -108,9 +108,9 @@ def train(model, data_loader, val_data_loader, val_train_data_loader, config, tr
   logging.info('===> Start training')
   best_val_miou, best_val_iter, curr_iter, epoch, is_training = 0, 0, 1, 1, True
 
-  logging.info('===> Testing before training')
-  val_miou, val_ious = validate(model, val_data_loader, curr_iter, config, transform_data_fn, class_counter, 'validation')
-  train_miou, train_ious = validate(model, val_train_data_loader, curr_iter, config, transform_data_fn, class_counter, 'training')
+  # logging.info('===> Testing before training')
+  # val_miou, val_ious = validate(model, val_data_loader, curr_iter, config, transform_data_fn, class_counter, 'validation')
+  # train_miou, train_ious = validate(model, val_train_data_loader, curr_iter, config, transform_data_fn, class_counter, 'training')
 
   if config.resume:
     checkpoint_fn = config.resume + '/weights.pth'
