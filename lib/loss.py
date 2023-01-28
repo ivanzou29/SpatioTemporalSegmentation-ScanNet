@@ -79,6 +79,8 @@ class DomainCalibratedLoss(nn.Module):
             raise ModuleNotFoundError
         self.all_domains = list(self.dcc.keys())
 
+        for d in self.all_domains:
+            self.dcc[d] = torch.Tensor([(self.dcc[d][c] if c in self.dcc[d] else 0) for c in range(len(self.class_labels))]).to(self.device)
 
     def forward(self, inputs, targets, domains):
         targets = targets.view(-1)
@@ -93,7 +95,8 @@ class DomainCalibratedLoss(nn.Module):
 
             dcl += (-torch.log(
                 self.dcc[domains[i]][tar] * torch.exp(pred[tar]) / 
-                torch.sum(torch.Tensor([(self.dcc[domains[i]][j] * torch.exp(pred[j]) if j in self.dcc[domains[i]] else 0) for j in range(len(self.class_labels))]))
-            )).to(self.device)
+                torch.dot(self.dcc[domains[i]], torch.exp(pred))
+            ))
+
         dcl /= len(inputs)
         return dcl
