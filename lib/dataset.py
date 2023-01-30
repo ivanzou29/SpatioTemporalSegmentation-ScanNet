@@ -16,12 +16,13 @@ from enum import Enum
 
 from lib.sparse_voxelization import SparseVoxelizer
 
+import torch
 from torch.utils.data import Dataset, DataLoader
 
 from lib.pc_utils import read_plyfile
 import lib.transforms as t
 from lib.dataloader import InfSampler, CommonClassesSampler, CooccGraphSampler
-from lib.scannet200_splits import CLASS_LABELS_200
+from lib.scannet200_splits import CLASS_LABELS_200, SCENE_TYPES
 
 
 class DatasetPhase(Enum):
@@ -308,7 +309,11 @@ class SparseVoxelizationDataset(VoxelizationDatasetBase):
 
       with open(domain_by_scene_name_path, 'rb') as handler:
         self.domain_by_scene_name = pickle.load(handler)
-
+      
+      self.domain_to_index = {}
+      for i in range(len(SCENE_TYPES)):
+          self.domain_to_index[SCENE_TYPES[i]] = i
+      
       self.class_labels = CLASS_LABELS_200
       self.class_label_to_index = {}
       for i in range(len(self.class_labels)):
@@ -381,7 +386,7 @@ class SparseVoxelizationDataset(VoxelizationDatasetBase):
       scene_instance_counter = self.instance_counter_by_scene[self.train_scene_list[index]]
       return_args.append(scene_instance_counter)
     elif self.config.sampler == 'SceneTypeSampler':
-      scene_type = [self.domain_by_scene_name[self.train_scene_list[index]]] * len(labels)
+      scene_type = torch.Tensor([self.domain_to_index[self.domain_by_scene_name[self.train_scene_list[index]]]] * len(labels))
       return_args.append(scene_type)
     return tuple(return_args)
 

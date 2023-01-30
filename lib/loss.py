@@ -4,6 +4,7 @@ from torch import nn
 
 
 from lib.datasets.scannet import CLASS_LABELS, CLASS_LABELS_200, INSTANCE_COUNTER_200_TRAIN, INSTANCE_COUNTER_20_TRAIN, STEP_LEARN_STARTED_DICT_200, STEP_VAL_STARTED_DICT_200, STEP_ALMOST_LEARNED_DICT_200
+from lib.scannet200_splits import SCENE_TYPES
 
 
 def instance_count_reweight_loss(device, config, class_labels=CLASS_LABELS_200, instance_counter=INSTANCE_COUNTER_200_TRAIN, multiplier_constant=50):
@@ -94,23 +95,40 @@ class DomainCalibratedLoss(nn.Module):
         # Transform domain_class_counter into a dictionary of torch.Tensors for easier access later
         for d in self.all_domains:
             self.domain_class_counter[d] = torch.Tensor([(self.domain_class_counter[d][c] if c in self.domain_class_counter[d] else 0) for c in range(len(self.class_labels))]).to(self.device)
+        
+        self.domain_class_counter_tensor = []
+        for i in range(len(SCENE_TYPES)):
+            scene_type = SCENE_TYPES[i]
+            self.domain_class_counter_tensor.append(self.domain_class_counter[scene_type].view(1, -1))
+        
+        self.domain_class_counter_tensor = torch.cat(self.domain_class_counter_tensor, dim=0).to(self.device)
+
+        del self.domain_class_counter
+
+        pass
+
 
     def forward(self, inputs, targets, domains):
         targets = targets.view(-1)
         domain_calibrated_loss = 0
-
         valid_idx = torch.where(targets != self.ignore_label)
-
+        
         targets = targets[valid_idx]
         inputs = inputs[valid_idx]
+        domains = domains[valid_idx]
 
-        for i in range(len(inputs)):
-            tar = targets[i].item()
-            pred = inputs[i]
-            domain_calibrated_loss += (-torch.log(
-                self.domain_class_counter[domains[i]][tar] * torch.exp(pred[tar]) / 
-                torch.dot(self.domain_class_counter[domains[i]], torch.exp(pred))
-            ))
+        # for i in range(len(inputs)):
+        #     domain_calibrated_loss += (-torch.log(
+        #         self.domain_class_counter_tensor[domains[i]][targets[i]] * torch.exp(inputs[i][targets[i]]) / 
+        #         torch.dot(self.domain_class_counter_tensor[domains[i]], torch.exp(inputs[i]))
+        #     ))
+        
+        domain_calibrated_loss = torch.mean(-torch.log(
+            torch.div(
+                self.domain_class_counter_tensor[domains, targets] * torch.exp(inputs[torch.arange(len(inputs)).long(), targets]),
+                torch.sum(self.domain_class_counter_tensor[domains] * torch.exp(inputs), dim=1)
+            )
+        ))
 
-        domain_calibrated_loss /= len(inputs)
+        # domain_calibrated_loss /= len(inputs)
         return domain_calibrated_loss

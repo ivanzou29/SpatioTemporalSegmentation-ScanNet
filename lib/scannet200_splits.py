@@ -33,3 +33,11 @@ CLASS_LABELS_200 = (
   'laundry detergent', 'bathroom counter', 'object', 'bathroom vanity', 'closet wall', 'laundry hamper', 'bathroom stall door', 'ceiling light', 'trash bin', 'dumbbell', 'stair rail', 'tube', 'bathroom cabinet', 'cd case', 'closet rod',
   'coffee kettle', 'structure', 'shower head', 'keyboard piano', 'case of water bottles', 'coat rack', 'storage organizer', 'folded chair', 'fire alarm', 'power strip', 'calendar', 'poster', 'potted plant', 'luggage', 'mattress'
 )
+
+SCENE_TYPES = [
+        'Misc.', 'Bathroom', 'Office', 'Conference Room', 'Hallway',
+        'Apartment', 'Living room / Lounge', 'Classroom', 'Stairs',
+        'Bedroom / Hotel', 'Bookstore / Library', 'Kitchen', 'Lobby',
+        'Copy/Mail Room', 'ComputerCluster', 'Dining Room', 'Game room',
+        'Laundry Room', 'Gym', 'Closet', 'Storage/Basement/Garage'
+]

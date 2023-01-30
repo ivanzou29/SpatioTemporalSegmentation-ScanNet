@@ -179,6 +179,8 @@ def train(model, data_loader, val_data_loader, val_train_data_loader, config, tr
         target = target.long().to(device)
 
         if config.sampler == 'SceneTypeSampler' and config.reweight == 'domain_calibrated_loss':
+          scene_type = torch.cat(scene_type, axis=0).long().to(device)
+
           loss = criterion(soutput.F, target.long(), scene_type)
           loss /= config.iter_size
           batch_loss += loss.item()
