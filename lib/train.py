@@ -85,7 +85,7 @@ def train(model, data_loader, val_data_loader, val_train_data_loader, config, tr
   elif config.reweight == 'dynamic_iou_reweight':
     criterion = dynamic_reweight_by_training_iou(device, config.ignore_label, None)
   elif config.reweight == 'domain_calibrated_loss':
-    criterion = DomainCalibratedLoss(device, class_labels=class_labels)
+    criterion = DomainCalibratedLoss(device, config, class_labels=class_labels)
   
   class_counter = Counter()
 

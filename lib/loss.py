@@ -63,40 +63,51 @@ def dynamic_reweight_by_training_iou(device, ignore_label, ious=None):
 
 
 class DomainCalibratedLoss(nn.Module):
-    def __init__(self, device, class_labels=CLASS_LABELS_200, dcc_pickle_path='lib/domain_class_counter.pickle'):
+    def __init__(self, device, config, class_labels=CLASS_LABELS_200, dcc_pickle_path='lib/domain_class_counter.pickle'):
+        """
+            Constructor method to initialize an object of DomainCalibratedLoss
+
+            Args:
+                device (str): usually CUDA if supported, otherwise the computation can be slow
+                config (dict): the training configuration used, for us to query the ignore_label
+                class_labels (tuple): the tuple containing all the semantic classes to be evaluated in the task
+                dcc_pickle_path (str): the path to the pickle file that contains the domain class counter to be used in calculating the loss
+        """
 
         super(DomainCalibratedLoss, self).__init__()
 
         self.device = device
+        self.ignore_label = config.ignore_label
         self.class_labels = class_labels
         self.dcc_pickle_path = dcc_pickle_path
 
-        self.dcc = None
+        # self.domain_class_counter is the domain class counter
+        self.domain_class_counter = None
         with open(dcc_pickle_path, 'rb') as handler:
-            self.dcc = pickle.load(handler)
+            self.domain_class_counter = pickle.load(handler)
     
-        if not self.dcc:
+        if not self.domain_class_counter:
             raise ModuleNotFoundError
-        self.all_domains = list(self.dcc.keys())
+        
+        self.all_domains = list(self.domain_class_counter.keys())
 
+        # Transform domain_class_counter into a dictionary of torch.Tensors for easier access later
         for d in self.all_domains:
-            self.dcc[d] = torch.Tensor([(self.dcc[d][c] if c in self.dcc[d] else 0) for c in range(len(self.class_labels))]).to(self.device)
+            self.domain_class_counter[d] = torch.Tensor([(self.domain_class_counter[d][c] if c in self.domain_class_counter[d] else 0) for c in range(len(self.class_labels))]).to(self.device)
 
     def forward(self, inputs, targets, domains):
         targets = targets.view(-1)
-        dcl = 0
+        domain_calibrated_loss = 0
 
-        for i in range(len(inputs)):
-            tar = targets[i].detach().item()
-            if tar == 255:
-                continue
-            
+        valid_idx = torch.where(targets != self.ignore_label)
+
+        for i in range(valid_idx):
+            tar = targets[i].item()
             pred = inputs[i]
-
-            dcl += (-torch.log(
-                self.dcc[domains[i]][tar] * torch.exp(pred[tar]) / 
-                torch.dot(self.dcc[domains[i]], torch.exp(pred))
+            domain_calibrated_loss += (-torch.log(
+                self.domain_class_counter[domains[i]][tar] * torch.exp(pred[tar]) / 
+                torch.dot(self.domain_class_counter[domains[i]], torch.exp(pred))
             ))
 
-        dcl /= len(inputs)
-        return dcl
+        domain_calibrated_loss /= len(inputs)
+        return domain_calibrated_loss
