@@ -101,7 +101,10 @@ class DomainCalibratedLoss(nn.Module):
 
         valid_idx = torch.where(targets != self.ignore_label)
 
-        for i in range(valid_idx):
+        targets = targets[valid_idx]
+        inputs = inputs[valid_idx]
+
+        for i in range(len(inputs)):
             tar = targets[i].item()
             pred = inputs[i]
             domain_calibrated_loss += (-torch.log(
