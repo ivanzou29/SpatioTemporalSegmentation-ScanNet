@@ -193,6 +193,9 @@ def train(model, data_loader, val_data_loader, val_train_data_loader, config, tr
           batch_loss += loss.item()
           loss.backward()
 
+      # Apply gradient clipping
+      nn.utils.clip_grad_norm_(model.parameters(), max_norm=2.0, norm_type=2)
+      
       # Update number of steps
       optimizer.step()
       scheduler.step()

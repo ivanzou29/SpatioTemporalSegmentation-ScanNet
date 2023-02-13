@@ -327,7 +327,7 @@ class SparseVoxelizationDataset(VoxelizationDatasetBase):
     return mat[:, :3], mat[:, 3:-1], mat[:, -1]
 
   def _augment_elastic_distortion(self, pointcloud):
-    if self.ELASTIC_DISTORT_PARAMS is not None:
+    if self.ELASTIC_DISTORT_PARAMS is not None:  
       if random.random() < 0.95:
         for granularity, magnitude in self.ELASTIC_DISTORT_PARAMS:
           pointcloud = t.elastic_distortion(pointcloud, granularity, magnitude)
@@ -354,6 +354,30 @@ class SparseVoxelizationDataset(VoxelizationDatasetBase):
     # o3d.draw_geometries([pcd])
 
     coords, feats, labels = self.convert_mat2cfl(pointcloud)
+
+    if self.config.sampler == 'mix_scenes':
+      rand_index = random.randint(0, len(self.data_paths) - 1)
+      if self.explicit_rotation > 1:
+        rand_index //= self.explicit_rotation
+      rand_scene_point_cloud, rand_scene_center = self.load_ply(rand_index)
+
+      # perform voxelize for the random scene
+      if self.PREVOXELIZE_VOXEL_SIZE is not None:
+        rand_scene_inds = ME.SparseVoxelize(rand_scene_point_cloud[:, :3] / self.PREVOXELIZE_VOXEL_SIZE, return_index=True)
+        rand_scene_point_cloud = rand_scene_point_cloud[rand_scene_inds]
+
+      # perform elastic distortion for the random scene
+      if self.elastic_distortion:
+        rand_scene_point_cloud = self._augment_elastic_distortion(rand_scene_point_cloud)
+      
+      rand_scene_coords, rand_scene_feats, rand_scene_labels = self.convert_mat2cfl(rand_scene_point_cloud)
+
+      print(coords.size(), feats.size(), labels.size())
+      print(rand_scene_coords.size(), rand_scene_feats.size(), rand_scene_labels.size())
+      coords = torch.cat((coords, rand_scene_coords), axis=0)
+      feats = torch.cat((feats, rand_scene_feats), axis=0)
+      labels = torch.cat((labels, rand_scene_labels), axis=0)
+      print(coords.size(), feats.size(), labels.size())
 
     outs = self.sparse_voxelizer.voxelize(
         coords,
